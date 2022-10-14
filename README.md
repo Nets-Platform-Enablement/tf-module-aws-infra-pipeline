@@ -41,7 +41,7 @@ module "tf_infra_pipeline" {
 | tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state | string |  |  |
 | aws_region | AWS region to deploy pipeline to | string | `eu-central-1` |  |
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
-| variables_file | File to provide terraform the variables with | string | "" | If not given, will automaticly try to use `environments/{environment}.tfvars` |
+| variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
