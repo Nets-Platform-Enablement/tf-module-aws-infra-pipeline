@@ -18,7 +18,7 @@ module "tf_infra_pipeline" {
 - Pipeline with manual approval, failure and success reporting, custom variables file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "source = "github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline"
+  source                = "github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
@@ -50,6 +50,7 @@ module "tf_infra_pipeline" {
 
 ## Notes
 
+- After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.
 - The CodeBuild -project created by this module will by default get following AWS managed policices:
   - IAMFullAccess
   - AWSKeyManagementServicePowerUser
@@ -61,3 +62,4 @@ module "tf_infra_pipeline" {
   - AWSCodeArtifactAdminAccess
   - AmazonSNSFullAccess
 - If terraform should be able to manage any additional AWS services, you can provide AWS Policies using `managed_policies` variable.
+- If the pipeline is trying to make changes to _itself_, things most likely will break. In such case, perform `terraform apply` manually.
