@@ -6,8 +6,8 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 - Pipeline _without_ manual approval
 ```
 module "tf_infra_pipeline" {
-  source                = "github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline"
-  github_repository_id  = "Nets-Platform-Enablement/sample-project" # https://github.com/{this-part}.git
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.0.0"
+  github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
@@ -18,7 +18,7 @@ module "tf_infra_pipeline" {
 - Pipeline with manual approval, failure and success reporting, custom variables file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.0.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
