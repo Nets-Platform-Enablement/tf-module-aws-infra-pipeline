@@ -28,7 +28,8 @@ resource "aws_codebuild_project" "tflint" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "${path.module}/files/buildspec_tflint.yml"
+    #buildspec = "${path.module}/files/buildspec_tflint.yml"
+    buildspec = "${file("${path.module}/files/buildspec_tflint.yml")}"
   }
 }
 
