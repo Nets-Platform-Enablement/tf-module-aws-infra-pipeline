@@ -28,8 +28,7 @@ resource "aws_codebuild_project" "tflint" {
 
   source {
     type      = "CODEPIPELINE"
-    #buildspec = "${path.module}/files/buildspec_tflint.yml"
-    buildspec = "${file("${path.module}/files/buildspec_tflint.yml")}"
+    buildspec = file("${path.module}/files/buildspec_tflint.yml")
   }
 }
 
@@ -52,7 +51,7 @@ resource "aws_codebuild_project" "checkov" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "${path.module}/files/buildspec_checkov.yml"
+    buildspec = file("${path.module}/files/buildspec_checkov.yml")
   }
 }
 
@@ -78,7 +77,7 @@ resource "aws_codebuild_project" "tf_plan" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = "${path.module}/files/buildspec_tf_plan.yml"
+    buildspec = file("${path.module}/files/buildspec_tf_plan.yml")
   }
 }
 
@@ -104,6 +103,6 @@ resource "aws_codebuild_project" "tf_apply" {
   
   source {
     type      = "CODEPIPELINE"
-    buildspec = "${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml" : "buildspec_tf_apply_auto_approve.yml"}"
+    buildspec = file("${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml" : "buildspec_tf_apply_auto_approve.yml"}")
   }
 }
