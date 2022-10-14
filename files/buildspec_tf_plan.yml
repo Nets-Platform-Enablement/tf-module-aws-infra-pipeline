@@ -1,0 +1,33 @@
+version: 0.2
+
+env:
+  variables:
+    TF_VERSION: "1.2.9"
+
+phases:
+
+  install:
+    commands:
+      - cd /usr/bin
+      - "curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+      - unzip -o terraform.zip
+
+  build:
+    commands:
+      - cd "$CODEBUILD_SRC_DIR"
+      - terraform init
+      - terraform validate
+      - echo "Current Terraform State on `date`"
+      - terraform show
+      - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
+      - terraform plan --var-file $VAR_FILE -no-color -out thePlan.tfp
+      - echo "Terraform plan saved to thePlan.tfp"
+
+  post_build:
+    commands:
+      - echo "Terraform plan completed on `date`"
+
+artifacts:
+  files:
+    - thePlan.tfp
+  name: TerraformPlan

@@ -1,0 +1,152 @@
+
+#Creating SNS topic
+module "sns_topic" {
+  source  = "terraform-aws-modules/sns/aws"
+  version = "~> 3.0"
+
+  name              = "${local.name}-${var.environment}-updates"
+  kms_master_key_id = aws_kms_key.sns_topic_encryption.id
+
+  tags = merge(local.tags, { Secure = "true" } )
+}
+
+#Key to encrypt sns topic messages
+resource "aws_kms_key" "sns_topic_encryption" {
+  policy = data.aws_iam_policy_document.sns-topic-policy.json
+}
+
+data "aws_iam_policy_document" "sns-topic-policy" {
+  statement {
+    sid       = "Enable IAM User Permissions"
+    effect    = "Allow"
+    actions   = ["kms:*"]
+    resources = ["*"]
+    principals {
+      type        = "AWS"
+      identifiers = [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
+        aws_iam_role.codebuild.arn
+      ]
+    }
+  }
+  statement {
+    sid    = "Allow CloudWatch for CMK"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = [
+        "cloudwatch.amazonaws.com",
+        "events.amazonaws.com"
+      ]
+    }
+
+    actions   = ["kms:Decrypt*", "kms:GenerateDataKey*"]
+    resources = ["*"]
+  }
+}
+
+#Create subcriptions to sns topic
+resource "aws_sns_topic_subscription" "send_email" {
+  topic_arn = module.sns_topic.sns_topic_arn
+  protocol  = "email"
+  for_each  = var.emails
+  endpoint  = each.value
+}
+
+resource "aws_cloudwatch_event_rule" "failed_builds" {
+  name        = "${local.name}-${var.environment}-build-failure"
+  description = "Managed by Terraform"
+  is_enabled  = var.failure_notifications
+  event_pattern = jsonencode({
+    "source": [
+      "aws.codebuild"
+    ],
+    "detail-type": [
+      "CodeBuild Build State Change"
+    ],
+    "detail": {
+      "build-status": [
+        "FAILED",
+        "STOPPED",
+      ],
+      "project-name": [
+        aws_codebuild_project.tflint.name,
+        aws_codebuild_project.checkov.name,
+        aws_codebuild_project.tf_plan.name,
+        aws_codebuild_project.tf_apply.name,
+      ]
+    }
+  })
+  tags = local.tags
+}
+
+resource "aws_cloudwatch_event_target" "sns_failed_builds" {
+  rule      = aws_cloudwatch_event_rule.failed_builds.name
+  target_id = "SendToSNS"
+  arn       = module.sns_topic.sns_topic_arn
+    input_transformer {
+      input_paths = {
+        project   = "$.detail.project-name",
+        status    = "$.detail.build-status",
+        link      = "$.detail.additional-information.logs.deep-link",
+        account   = "$.account",
+      }
+      input_template = <<EOF
+{
+  "Project": "${local.name}", 
+  "environment": "${var.environment}", 
+  "account": <account>,
+  "step": <project>,
+  "status": <status>,
+  "logs": <link>
+}  
+EOF
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "succes_builds" {
+  name        = "${local.name}-${var.environment}-build-succeeded"
+  description = "Managed by Terraform"
+  is_enabled  = var.success_notifications
+  event_pattern = jsonencode({
+    "source": [
+      "aws.codebuild"
+    ],
+    "detail-type": [
+      "CodeBuild Build State Change"
+    ],
+    "detail": {
+      "build-status": [
+        "SUCCEEDED",
+      ],
+      "project-name": [
+        aws_codebuild_project.tf_apply.name,
+      ]
+    }
+  })
+  tags = local.tags
+}
+
+resource "aws_cloudwatch_event_target" "sns_success_builds" {
+  rule      = aws_cloudwatch_event_rule.succes_builds.name
+  target_id = "SendToSNS"
+  arn       = module.sns_topic.sns_topic_arn
+    input_transformer {
+      input_paths = {
+        project   = "$.detail.project-name",
+        status    = "$.detail.build-status",
+        link      = "$.detail.additional-information.logs.deep-link",
+        account   = "$.account",
+      }
+      input_template = <<EOF
+{
+  "Project": "${local.name}", 
+  "environment": "${var.environment}", 
+  "account": <account>,
+  "step": <project>,
+  "status": <status>,
+  "logs": <link>
+}  
+EOF
+  }
+}
