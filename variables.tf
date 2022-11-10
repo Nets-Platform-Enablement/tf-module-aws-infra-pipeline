@@ -46,21 +46,21 @@ variable "variables_file" {
 }
 
 variable "tags" {
-  type        = map
+  type        = map(any)
   description = "Map of Tag-Value -pairs to be added to all resources"
   default     = {}
   sensitive   = false
 }
 
 variable "managed_policies" {
-  type        =  list(string)
+  type        = list(string)
   description = "List of managed AWS Policies to attach to pipeline, for example ['AmazonRDSFullAccess']"
   default     = []
   sensitive   = false
 }
 
 variable "emails" {
-  type        =  set(string)
+  type        = set(string)
   description = "List of email-addresses receiving notifications on updates"
   default     = []
   sensitive   = false
@@ -77,5 +77,12 @@ variable "success_notifications" {
   type        = bool
   description = "Whether or not you want notifications on succeeded builds"
   default     = false
+  sensitive   = false
+}
+
+variable "checkov_skip_checks" {
+  type        = string
+  description = "Skip these CHECKOV checks"
+  default     = "CKV_AWS_18,CKV_AWS_144,CKV_AWS_147,CKV_AWS_158,CKV_AWS_184,CKV_AWS_7,CKV_AWS_145,CKV_AWS_136,CKV_AWS_219,CKV_AWS_109,CKV_AWS_111,CKV2_AWS_38,CKV2_AWS_39"
   sensitive   = false
 }

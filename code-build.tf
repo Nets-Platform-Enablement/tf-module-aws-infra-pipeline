@@ -5,8 +5,8 @@ resource "aws_cloudwatch_log_group" "codebuild_log_group" {
   name = "${local.name}-logs"
 
   tags = merge(local.tags,
-  {
-    Application = local.name
+    {
+      Application = local.name
   })
   retention_in_days = 7
 }
@@ -51,7 +51,7 @@ resource "aws_codebuild_project" "checkov" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = file("${path.module}/files/buildspec_checkov.yml")
+    buildspec = templatefile("${path.module}/files/buildspec_checkov.yml", { TF_VERSION = "1.2.9", SKIP-CHECK = "${var.checkov_skip_checks}" })
   }
 }
 
@@ -100,7 +100,7 @@ resource "aws_codebuild_project" "tf_apply" {
       value = local.tfvars
     }
   }
-  
+
   source {
     type      = "CODEPIPELINE"
     buildspec = file("${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml" : "buildspec_tf_apply_auto_approve.yml"}")

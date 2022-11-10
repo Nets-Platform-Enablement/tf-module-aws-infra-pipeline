@@ -47,6 +47,7 @@ module "tf_infra_pipeline" {
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
 | failure_notifications | Whether or not you want notifications on failed builds | bool | true |  |
 | success_notifications | Whether or not you want notifications on succeeded builds | bool | false |  |
+| checkov_skip_checks | List of CheckOV check you want to skip | string | |
 
 ## Notes
 
