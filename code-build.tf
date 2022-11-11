@@ -51,7 +51,7 @@ resource "aws_codebuild_project" "checkov" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = templatefile("${path.module}/files/buildspec_checkov.yml", { TF_VERSION = "1.2.9", SKIP-CHECK = "${var.checkov_skip_checks}" })
+    buildspec = templatefile("${path.module}/files/buildspec_checkov.yml.tftpl", { TF_VERSION = "1.2.9", SKIP-CHECK = "${var.checkov_skip_checks}" })
   }
 }
 

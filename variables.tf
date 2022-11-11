@@ -83,6 +83,6 @@ variable "success_notifications" {
 variable "checkov_skip_checks" {
   type        = string
   description = "Skip these CHECKOV checks"
-  default     = "CKV_AWS_18,CKV_AWS_144,CKV_AWS_147,CKV_AWS_158,CKV_AWS_184,CKV_AWS_7,CKV_AWS_145,CKV_AWS_136,CKV_AWS_219,CKV_AWS_109,CKV_AWS_111,CKV2_AWS_38,CKV2_AWS_39"
+  default     = ""
   sensitive   = false
 }
