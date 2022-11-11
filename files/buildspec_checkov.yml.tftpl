@@ -20,7 +20,7 @@ phases:
   build:
     commands:   
       - cd "$CODEBUILD_SRC_DIR"
-      - checkov --directory ./ --skip-check ${SKIP-CHECK}
+      - checkov --directory ./ --soft-fail --skip-check ${SKIP-CHECK}
 
   post_build:
     commands:
