@@ -20,8 +20,11 @@ phases:
   build:
     commands:   
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
+      %{ if SKIP-CHECK != "" }
       - checkov --directory ./ --soft-fail --skip-check ${SKIP-CHECK}
-
+      %{ else }
+      - checkov --directory ./ --soft-fail
+      %{ endif }
   post_build:
     commands:
       - echo "Checkov test is completed on `date`"
