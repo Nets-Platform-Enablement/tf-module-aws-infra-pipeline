@@ -28,7 +28,7 @@ resource "aws_codebuild_project" "tflint" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = file("${path.module}/files/buildspec_tflint.yml")
+    buildspec = templatefile("${path.module}/files/files/buildspec_tflint.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
   }
 }
 
@@ -51,7 +51,7 @@ resource "aws_codebuild_project" "checkov" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = templatefile("${path.module}/files/buildspec_checkov.yml.tftpl", { TF_VERSION = "1.2.9", SKIP-CHECK = "${var.checkov_skip_checks}", DIRECTORY = "${var.directory}"})
+    buildspec = templatefile("${path.module}/files/buildspec_checkov.yml.tftpl", {TF_VERSION = "1.2.9", SKIP-CHECK = "${var.checkov_skip_checks}", DIRECTORY = "${var.directory}"})
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_codebuild_project" "tf_plan" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = file("${path.module}/files/buildspec_tf_plan.yml")
+    buildspec = templatefile("${path.module}/files/files/buildspec_tf_plan.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
   }
 }
 
@@ -103,6 +103,6 @@ resource "aws_codebuild_project" "tf_apply" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = file("${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml" : "buildspec_tf_apply_auto_approve.yml"}")
+    buildspec = templatefile("${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
   }
 }
