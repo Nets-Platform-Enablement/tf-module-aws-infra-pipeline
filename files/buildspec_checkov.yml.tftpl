@@ -4,6 +4,7 @@ env:
   variables:
     TF_VERSION: ""
     SKIP-CHECK: ""
+    DIRECTORY: ""
 
 phases:
 
@@ -14,12 +15,11 @@ phases:
       - cd /usr/bin
       - "curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
       - unzip -o terraform.zip
-      - python -V
       - pip3 install checkov
 
   build:
     commands:   
-      - cd "$CODEBUILD_SRC_DIR"
+      - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - checkov --directory ./ --soft-fail --skip-check ${SKIP-CHECK}
 
   post_build:

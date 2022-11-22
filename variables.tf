@@ -86,3 +86,10 @@ variable "checkov_skip_checks" {
   default     = ""
   sensitive   = false
 }
+
+variable "directory" {
+  type        = string
+  description = "Run TFlint / CheckOV / Terraform in this directory"
+  default     = "/"
+  sensitive   = false
+}
