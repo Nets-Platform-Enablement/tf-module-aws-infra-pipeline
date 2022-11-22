@@ -28,7 +28,7 @@ resource "aws_codebuild_project" "tflint" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = templatefile("${path.module}/files/files/buildspec_tflint.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
+    buildspec = templatefile("${path.module}/files/buildspec_tflint.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_codebuild_project" "tf_plan" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = templatefile("${path.module}/files/files/buildspec_tf_plan.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
+    buildspec = templatefile("${path.module}/files/buildspec_tf_plan.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}"})
   }
 }
 
