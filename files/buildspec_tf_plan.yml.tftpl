@@ -32,7 +32,7 @@ phases:
 artifacts:
   files:
     %{ if EXTRA_FILE != "" }
-      - $EXTRA_FILE
+      - ${EXTRA_FILE}
       - thePlan.tfp
       %{ else }
       - thePlan.tfp
