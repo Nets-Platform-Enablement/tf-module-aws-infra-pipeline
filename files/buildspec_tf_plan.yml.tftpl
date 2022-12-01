@@ -4,6 +4,7 @@ env:
   variables:
     TF_VERSION: ""
     DIRECTORY: ""
+    EXTRA_FILE: ""
 
 phases:
 
@@ -30,7 +31,11 @@ phases:
 
 artifacts:
   files:
-    - thePlan.tfp
-    - ami_cleaner.zip
+    %{ if EXTRA_FILE != "" }
+      - $EXTRA_FILE
+      - thePlan.tfp
+      %{ else }
+      - thePlan.tfp
+      %{ endif }
   name: TerraformPlan
   base-directory: ${DIRECTORY}

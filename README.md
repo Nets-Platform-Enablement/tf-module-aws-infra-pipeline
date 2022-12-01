@@ -49,6 +49,7 @@ module "tf_infra_pipeline" {
 | success_notifications | Whether or not you want notifications on succeeded builds | bool | false |  |
 | checkov_skip_checks | List of CheckOV check you want to skip | string | "" |
 | directory | directory for terraform hcl | string | "/" |
+| extra_build_artifacts | filename to include for codepipeline apply step | string | "" |
 ## Notes
 
 - After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.

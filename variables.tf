@@ -93,3 +93,10 @@ variable "directory" {
   default     = "/"
   sensitive   = false
 }
+
+variable "extra_build_artifacts" {
+  type        = string
+  description = "Include this extra file from Plan step to Apply step"
+  default     = ""
+  sensitive   = false
+}
