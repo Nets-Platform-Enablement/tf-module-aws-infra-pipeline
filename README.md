@@ -65,3 +65,4 @@ module "tf_infra_pipeline" {
   - AmazonSNSFullAccess
 - If terraform should be able to manage any additional AWS services, you can provide AWS Policies using `managed_policies` variable.
 - If the pipeline is trying to make changes to _itself_, things most likely will break. In such case, perform `terraform apply` manually.
+- Note! There's a default limit of 10 attached AWS managed policies per role. If you add more than 10, you'll need to create a limit increase request.
