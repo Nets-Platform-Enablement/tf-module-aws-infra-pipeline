@@ -95,8 +95,8 @@ variable "directory" {
 }
 
 variable "extra_build_artifacts" {
-  type        = string
-  description = "Include this extra file from Plan step to Apply step"
-  default     = ""
+  type        = set(string)
+  description = "Include these extra file from Plan step to Apply step"
+  default     = ([""])
   sensitive   = false
 }

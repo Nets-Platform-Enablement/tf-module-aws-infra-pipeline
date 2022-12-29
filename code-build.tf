@@ -77,7 +77,7 @@ resource "aws_codebuild_project" "tf_plan" {
 
   source {
     type      = "CODEPIPELINE"
-    buildspec = templatefile("${path.module}/files/buildspec_tf_plan.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}", EXTRA_FILE = "${var.extra_build_artifacts}"})
+    buildspec = templatefile("${path.module}/files/buildspec_tf_plan.yml.tftpl", {TF_VERSION = "1.2.9", DIRECTORY = "${var.directory}", EXTRA_FILES = "${var.extra_build_artifacts}"})
   }
 }
 

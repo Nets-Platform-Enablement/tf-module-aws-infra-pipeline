@@ -31,11 +31,11 @@ phases:
 
 artifacts:
   files:
-    %{ if EXTRA_FILE != "" }
-      - ${EXTRA_FILE}
-      - thePlan.tfp
-      %{ else }
-      - thePlan.tfp
-      %{ endif }
+    - thePlan.tfp
+    %{ if EXTRA_FILES != "" }
+      %{ for file in EXTRA_FILES ~}
+      - ${file}
+      %{ endfor ~}
+    %{ endif }
   name: TerraformPlan
   base-directory: ${DIRECTORY}
