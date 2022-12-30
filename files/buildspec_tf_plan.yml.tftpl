@@ -26,7 +26,7 @@ phases:
 artifacts:
   files:
     - thePlan.tfp
- %{ if EXTRA_FILES != "" }
+ %{ if EXTRA_FILES != [""] }
   %{ for file in EXTRA_FILES ~}
   - ${file}
   %{ endfor ~}
