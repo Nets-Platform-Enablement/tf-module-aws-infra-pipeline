@@ -45,7 +45,7 @@ resource "aws_codepipeline" "terraform" {
         ProjectName = aws_codebuild_project.tflint.name
       }
     }
-    
+
     action {
       run_order        = 1
       name             = "checkov-compliances"
@@ -60,7 +60,7 @@ resource "aws_codepipeline" "terraform" {
       }
     }
   }
-  
+
   stage {
     name = "Manual-Approval"
     action {
@@ -93,7 +93,7 @@ resource "aws_codepipeline" "terraform" {
       }
     }
   }
-  
+
   stage {
     name = "Deploy"
     action {
@@ -106,7 +106,7 @@ resource "aws_codepipeline" "terraform" {
       output_artifacts = []
       version          = "1"
       configuration = {
-        ProjectName = aws_codebuild_project.tf_apply.name
+        ProjectName   = aws_codebuild_project.tf_apply.name
         PrimarySource = "CodeWorkspace"
       }
     }

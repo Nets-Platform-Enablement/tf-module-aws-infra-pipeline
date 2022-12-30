@@ -1,7 +1,7 @@
 #IAM for CodePipeline
 
 resource "aws_iam_role" "codepipeline" {
-  name = "CodepipelineRole-${local.name}"
+  name        = "CodepipelineRole-${local.name}"
   description = "CodePipeline Service Role for ${local.name} - Managed by Terraform"
   tags        = local.tags
 
@@ -101,7 +101,7 @@ resource "aws_iam_role_policy" "codepipeline" {
 #IAM for CodeBuild
 
 resource "aws_iam_role" "codebuild" {
-  name = "CodebuildRole-${local.name}"
+  name        = "CodebuildRole-${local.name}"
   description = "CodeBuild Service Role - Managed by Terraform"
   tags        = local.tags
 
@@ -121,8 +121,8 @@ resource "aws_iam_role" "codebuild" {
     }
   )
 
-  managed_policy_arns = [ 
-    for n in keys(data.aws_iam_policy.managed): data.aws_iam_policy.managed[n].arn 
+  managed_policy_arns = [
+    for n in keys(data.aws_iam_policy.managed) : data.aws_iam_policy.managed[n].arn
   ]
 }
 
@@ -156,7 +156,7 @@ resource "aws_iam_role_policy" "codebuild" {
             "iam:ListRolePolicies",
             "iam:ListAttachedRolePolicies"
           ],
-          "Resource" : ["${aws_iam_role.codepipeline.arn}","${aws_iam_role.codebuild.arn}"]
+          "Resource" : ["${aws_iam_role.codepipeline.arn}", "${aws_iam_role.codebuild.arn}"]
         },
         {
           "Effect" : "Allow",

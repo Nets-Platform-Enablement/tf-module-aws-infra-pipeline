@@ -39,7 +39,7 @@ resource "aws_codepipeline" "terraform_without_approval" {
         ProjectName = aws_codebuild_project.tflint.name
       }
     }
-    
+
     action {
       run_order        = 1
       name             = "checkov-compliances"
@@ -67,7 +67,7 @@ resource "aws_codepipeline" "terraform_without_approval" {
       output_artifacts = []
       version          = "1"
       configuration = {
-        ProjectName         = aws_codebuild_project.tf_apply.name
+        ProjectName = aws_codebuild_project.tf_apply.name
       }
     }
   }

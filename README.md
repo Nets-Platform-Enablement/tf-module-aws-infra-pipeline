@@ -47,7 +47,9 @@ module "tf_infra_pipeline" {
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
 | failure_notifications | Whether or not you want notifications on failed builds | bool | true |  |
 | success_notifications | Whether or not you want notifications on succeeded builds | bool | false |  |
-
+| checkov_skip_checks | List of CheckOV check you want to skip | string | "" |
+| directory | directory for terraform hcl | string | "/" |
+| extra_build_artifacts | filenames to be included for codepipeline apply step | set(string) | ([""]) |
 ## Notes
 
 - After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.
@@ -63,3 +65,4 @@ module "tf_infra_pipeline" {
   - AmazonSNSFullAccess
 - If terraform should be able to manage any additional AWS services, you can provide AWS Policies using `managed_policies` variable.
 - If the pipeline is trying to make changes to _itself_, things most likely will break. In such case, perform `terraform apply` manually.
+- Note! There's a default limit of 10 attached AWS managed policies per role. If you add more than 10, you'll need to create a limit increase request.

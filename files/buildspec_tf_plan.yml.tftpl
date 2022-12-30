@@ -1,9 +1,5 @@
 version: 0.2
 
-env:
-  variables:
-    TF_VERSION: "1.2.9"
-
 phases:
 
   install:
@@ -14,7 +10,7 @@ phases:
 
   build:
     commands:
-      - cd "$CODEBUILD_SRC_DIR"
+      - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init
       - terraform validate
       - echo "Current Terraform State on `date`"
@@ -30,4 +26,10 @@ phases:
 artifacts:
   files:
     - thePlan.tfp
+ %{ if EXTRA_FILES != [""] }
+  %{ for file in EXTRA_FILES ~}
+  - ${file}
+  %{ endfor ~}
+ %{ endif }
   name: TerraformPlan
+  base-directory: ${DIRECTORY}

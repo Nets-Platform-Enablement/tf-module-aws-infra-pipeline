@@ -7,7 +7,7 @@ module "sns_topic" {
   name              = "${local.name}-${var.environment}-updates"
   kms_master_key_id = aws_kms_key.sns_topic_encryption.id
 
-  tags = merge(local.tags, { Secure = "true" } )
+  tags = merge(local.tags, { Secure = "true" })
 }
 
 #Key to encrypt sns topic messages
@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "sns-topic-policy" {
     actions   = ["kms:*"]
     resources = ["*"]
     principals {
-      type        = "AWS"
+      type = "AWS"
       identifiers = [
         "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root",
         aws_iam_role.codebuild.arn
@@ -33,7 +33,7 @@ data "aws_iam_policy_document" "sns-topic-policy" {
     sid    = "Allow CloudWatch for CMK"
     effect = "Allow"
     principals {
-      type        = "Service"
+      type = "Service"
       identifiers = [
         "cloudwatch.amazonaws.com",
         "events.amazonaws.com"
@@ -58,18 +58,18 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
   description = "Managed by Terraform"
   is_enabled  = var.failure_notifications
   event_pattern = jsonencode({
-    "source": [
+    "source" : [
       "aws.codebuild"
     ],
-    "detail-type": [
+    "detail-type" : [
       "CodeBuild Build State Change"
     ],
-    "detail": {
-      "build-status": [
+    "detail" : {
+      "build-status" : [
         "FAILED",
         "STOPPED",
       ],
-      "project-name": [
+      "project-name" : [
         aws_codebuild_project.tflint.name,
         aws_codebuild_project.checkov.name,
         aws_codebuild_project.tf_plan.name,
@@ -84,14 +84,14 @@ resource "aws_cloudwatch_event_target" "sns_failed_builds" {
   rule      = aws_cloudwatch_event_rule.failed_builds.name
   target_id = "SendToSNS"
   arn       = module.sns_topic.sns_topic_arn
-    input_transformer {
-      input_paths = {
-        project   = "$.detail.project-name",
-        status    = "$.detail.build-status",
-        link      = "$.detail.additional-information.logs.deep-link",
-        account   = "$.account",
-      }
-      input_template = <<EOF
+  input_transformer {
+    input_paths = {
+      project = "$.detail.project-name",
+      status  = "$.detail.build-status",
+      link    = "$.detail.additional-information.logs.deep-link",
+      account = "$.account",
+    }
+    input_template = <<EOF
 {
   "Project": "${local.name}", 
   "environment": "${var.environment}", 
@@ -109,17 +109,17 @@ resource "aws_cloudwatch_event_rule" "succes_builds" {
   description = "Managed by Terraform"
   is_enabled  = var.success_notifications
   event_pattern = jsonencode({
-    "source": [
+    "source" : [
       "aws.codebuild"
     ],
-    "detail-type": [
+    "detail-type" : [
       "CodeBuild Build State Change"
     ],
-    "detail": {
-      "build-status": [
+    "detail" : {
+      "build-status" : [
         "SUCCEEDED",
       ],
-      "project-name": [
+      "project-name" : [
         aws_codebuild_project.tf_apply.name,
       ]
     }
@@ -131,14 +131,14 @@ resource "aws_cloudwatch_event_target" "sns_success_builds" {
   rule      = aws_cloudwatch_event_rule.succes_builds.name
   target_id = "SendToSNS"
   arn       = module.sns_topic.sns_topic_arn
-    input_transformer {
-      input_paths = {
-        project   = "$.detail.project-name",
-        status    = "$.detail.build-status",
-        link      = "$.detail.additional-information.logs.deep-link",
-        account   = "$.account",
-      }
-      input_template = <<EOF
+  input_transformer {
+    input_paths = {
+      project = "$.detail.project-name",
+      status  = "$.detail.build-status",
+      link    = "$.detail.additional-information.logs.deep-link",
+      account = "$.account",
+    }
+    input_template = <<EOF
 {
   "Project": "${local.name}", 
   "environment": "${var.environment}", 
