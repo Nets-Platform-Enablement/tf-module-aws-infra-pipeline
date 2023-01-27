@@ -5,11 +5,12 @@ locals {
 
   # Nets-Platform-Enamblement/Project-Name -> Project-Name
   name = element(
-    split("/", var.github_repository_id), 
-    length(split("/", var.github_repository_id))-1
+    split("/", var.github_repository_id),
+    length(split("/", var.github_repository_id)) - 1
   )
 
-  tfvars = var.variables_file == "" ?  "environments/${var.environment}.tfvars" : var.variables_file
+  tfvars = var.variables_file == "" ? "environments/${var.environment}.tfvars" : var.variables_file
+  terraform_version = "1.2.9"
 }
 
 data "aws_caller_identity" "current" {}
@@ -27,7 +28,7 @@ data "aws_iam_policy" "managed" {
         "AWSCodeBuildAdminAccess",
         "AWSCodeArtifactAdminAccess",
         "AmazonSNSFullAccess",
-      ], 
+      ],
       var.managed_policies
     )
   )

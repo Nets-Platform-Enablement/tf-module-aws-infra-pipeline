@@ -46,21 +46,21 @@ variable "variables_file" {
 }
 
 variable "tags" {
-  type        = map
+  type        = map(any)
   description = "Map of Tag-Value -pairs to be added to all resources"
   default     = {}
   sensitive   = false
 }
 
 variable "managed_policies" {
-  type        =  list(string)
+  type        = list(string)
   description = "List of managed AWS Policies to attach to pipeline, for example ['AmazonRDSFullAccess']"
   default     = []
   sensitive   = false
 }
 
 variable "emails" {
-  type        =  set(string)
+  type        = set(string)
   description = "List of email-addresses receiving notifications on updates"
   default     = []
   sensitive   = false
@@ -77,5 +77,26 @@ variable "success_notifications" {
   type        = bool
   description = "Whether or not you want notifications on succeeded builds"
   default     = false
+  sensitive   = false
+}
+
+variable "checkov_skip_checks" {
+  type        = string
+  description = "Skip these CHECKOV checks"
+  default     = ""
+  sensitive   = false
+}
+
+variable "directory" {
+  type        = string
+  description = "Run TFlint / CheckOV / Terraform in this directory"
+  default     = "/"
+  sensitive   = false
+}
+
+variable "extra_build_artifacts" {
+  type        = set(string)
+  description = "Include these extra file from Plan step to Apply step"
+  default     = ([""])
   sensitive   = false
 }

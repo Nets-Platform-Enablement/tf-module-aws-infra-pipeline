@@ -1,9 +1,5 @@
 version: 0.2
 
-env:
-  variables:
-    TF_VERSION: "1.2.9"
-
 phases:
 
   install:
@@ -14,10 +10,10 @@ phases:
 
   build:
     commands:
-      - cd "$CODEBUILD_SRC_DIR"
+      - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init -no-color
-      - terraform plan --var-file $VAR_FILE -out /tmp/updates.tfp -no-color
-      - terraform apply /tmp/updates.tfp -no-color
+      - mv $CODEBUILD_SRC_DIR_TerraformPlan/* .
+      - terraform apply thePlan.tfp
 
   post_build:
     commands:
