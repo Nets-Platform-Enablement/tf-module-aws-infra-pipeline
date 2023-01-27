@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "codepipeline_artifacts_store" {
-  bucket        = "${local.name}-artifact-store-${var.environment}"
+  bucket        = lower("${local.name}-artifact-store-${var.environment}")
   tags          = local.tags
   force_destroy = true
 }
