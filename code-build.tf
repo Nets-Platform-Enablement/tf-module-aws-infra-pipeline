@@ -62,7 +62,7 @@ resource "aws_codebuild_project" "checkov" {
       {
         TF_VERSION = local.terraform_version, 
         SKIP-CHECK = var.checkov_skip_checks, 
-        DIRECTORY = var.DIRECTORY
+        DIRECTORY = var.directory
       }
     )
   }
