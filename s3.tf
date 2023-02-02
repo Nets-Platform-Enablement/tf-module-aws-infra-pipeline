@@ -72,20 +72,20 @@ resource "aws_s3_bucket_policy" "artifact_store_policy" {
 data "aws_iam_policy_document" "allow_ssl_requests_only" {
   statement {
 
-    sid = "AllowSSLRequestsOnly"
+    sid     = "AllowSSLRequestsOnly"
     actions = ["s3:*"]
-    effect = "Deny"
+    effect  = "Deny"
     resources = [
       aws_s3_bucket.codepipeline_artifacts_store.arn,
       "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*",
     ]
     condition {
-      test = "Bool"
+      test     = "Bool"
       variable = "aws:SecureTransport"
-      values = ["false"]
+      values   = ["false"]
     }
     principals {
-      type = "AWS"
+      type        = "AWS"
       identifiers = ["*"]
     }
   }
