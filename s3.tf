@@ -18,6 +18,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "codepipeline_arti
     bucket_key_enabled = false
   }
 }
+
 resource "aws_s3_bucket_versioning" "codepipeline_artifacts_store_bucket_versioning" {
   bucket = aws_s3_bucket.codepipeline_artifacts_store.id
   versioning_configuration {
@@ -25,6 +26,33 @@ resource "aws_s3_bucket_versioning" "codepipeline_artifacts_store_bucket_version
   }
   lifecycle {
     prevent_destroy = false
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "codepipeline_artifacts_store_bucket_versioning_config" {
+  # Must have bucket versioning enabled first
+  depends_on = [aws_s3_bucket_versioning.codepipeline_artifacts_store_bucket_versioning]
+
+  bucket = aws_s3_bucket.codepipeline_artifacts_store_bucket_versioning.id
+
+  rule {
+    id = "AllObjects"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 90
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 60
+      storage_class   = "GLACIER"
+    }
+
+    status = "Enabled"
   }
 }
 
