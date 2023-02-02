@@ -73,11 +73,20 @@ data "aws_iam_policy_document" "allow_ssl_requests_only" {
   statement {
 
     sid = "AllowSSLRequestsOnly"
-    actions = ["s3:"]
-
+    actions = ["s3:*"]
+    effect = "Deny"
     resources = [
       aws_s3_bucket.codepipeline_artifacts_store.arn,
       "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*",
     ]
+    condition {
+      test = "Bool"
+      variable = "aws:SecureTransport"
+      values = ["false"]
+    }
+    principals {
+      type = "AWS"
+      identifiers = ["*"]
+    }
   }
 }
