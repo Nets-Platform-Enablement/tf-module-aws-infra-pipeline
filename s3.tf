@@ -63,3 +63,21 @@ resource "aws_s3_bucket_public_access_block" "codepipeline_artifacts_store_publi
   block_public_policy     = true
   ignore_public_acls      = true
 }
+
+resource "aws_s3_bucket_policy" "artifact_store_policy" {
+  bucket = aws_s3_bucket.codepipeline_artifacts_store.id
+  policy = data.aws_iam_policy_document.allow_ssl_requests_only.json
+}
+
+data "aws_iam_policy_document" "allow_ssl_requests_only" {
+  statement {
+
+    sid = "AllowSSLRequestsOnly"
+    actions = ["s3:"]
+
+    resources = [
+      aws_s3_bucket.codepipeline_artifacts_store.arn,
+      "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*",
+    ]
+  }
+}
