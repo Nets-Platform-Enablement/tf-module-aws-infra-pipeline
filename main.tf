@@ -9,7 +9,7 @@ locals {
     length(split("/", var.github_repository_id)) - 1
   )
 
-  tfvars = var.variables_file == "" ? "environments/${var.environment}.tfvars" : var.variables_file
+  tfvars            = var.variables_file == "" ? "environments/${var.environment}.tfvars" : var.variables_file
   terraform_version = "1.2.9"
 }
 

@@ -1,4 +1,3 @@
-
 #Creating SNS topic
 module "sns_topic" {
   source  = "terraform-aws-modules/sns/aws"
@@ -12,9 +11,16 @@ module "sns_topic" {
 
 #Key to encrypt sns topic messages
 resource "aws_kms_key" "sns_topic_encryption" {
-  policy = data.aws_iam_policy_document.sns-topic-policy.json
+  description             = "Key for encrypting s3 sns topic"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.sns-topic-policy.json
+  tags                    = local.tags
 }
-
+resource "aws_kms_alias" "sns_topic_s3_encryption" {
+  name          = "alias/sns_topic_encrypt"
+  target_key_id = aws_kms_key.sns_topic_encryption.key_id
+}
 data "aws_iam_policy_document" "sns-topic-policy" {
   statement {
     sid       = "Enable IAM User Permissions"

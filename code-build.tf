@@ -27,12 +27,12 @@ resource "aws_codebuild_project" "tflint" {
   }
 
   source {
-    type      = "CODEPIPELINE"
+    type = "CODEPIPELINE"
     buildspec = templatefile(
-      "${path.module}/files/buildspec_tflint.yml.tftpl", 
+      "${path.module}/files/buildspec_tflint.yml.tftpl",
       {
-        TF_VERSION = local.terraform_version, 
-        DIRECTORY = var.directory
+        TF_VERSION = local.terraform_version,
+        DIRECTORY  = var.directory
       }
     )
   }
@@ -56,13 +56,13 @@ resource "aws_codebuild_project" "checkov" {
   }
 
   source {
-    type      = "CODEPIPELINE"
+    type = "CODEPIPELINE"
     buildspec = templatefile(
-      "${path.module}/files/buildspec_checkov.yml.tftpl", 
+      "${path.module}/files/buildspec_checkov.yml.tftpl",
       {
-        TF_VERSION = local.terraform_version, 
-        SKIP-CHECK = var.checkov_skip_checks, 
-        DIRECTORY = var.directory
+        TF_VERSION = local.terraform_version,
+        SKIP-CHECK = var.checkov_skip_checks,
+        DIRECTORY  = var.directory
       }
     )
   }
@@ -89,12 +89,12 @@ resource "aws_codebuild_project" "tf_plan" {
   }
 
   source {
-    type      = "CODEPIPELINE"
+    type = "CODEPIPELINE"
     buildspec = templatefile(
-      "${path.module}/files/buildspec_tf_plan.yml.tftpl", 
+      "${path.module}/files/buildspec_tf_plan.yml.tftpl",
       {
-        TF_VERSION  = local.terraform_version, 
-        DIRECTORY   = var.directory, 
+        TF_VERSION  = local.terraform_version,
+        DIRECTORY   = var.directory,
         EXTRA_FILES = var.extra_build_artifacts
       }
     )
@@ -122,12 +122,12 @@ resource "aws_codebuild_project" "tf_apply" {
   }
 
   source {
-    type      = "CODEPIPELINE"
+    type = "CODEPIPELINE"
     buildspec = templatefile(
-      "${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}", 
+      "${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}",
       {
-        TF_VERSION  = local.terraform_version, 
-        DIRECTORY   = var.directory
+        TF_VERSION = local.terraform_version,
+        DIRECTORY  = var.directory
       }
     )
   }
