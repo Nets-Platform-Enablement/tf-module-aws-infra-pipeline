@@ -42,7 +42,8 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       type = "Service"
       identifiers = [
         "cloudwatch.amazonaws.com",
-        "events.amazonaws.com"
+        "events.amazonaws.com",
+        "s3.amazonaws.com"
       ]
     }
 
