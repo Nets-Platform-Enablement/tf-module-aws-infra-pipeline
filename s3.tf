@@ -33,7 +33,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "codepipeline_artifacts_store_b
   # Must have bucket versioning enabled first
   depends_on = [aws_s3_bucket_versioning.codepipeline_artifacts_store_bucket_versioning]
 
-  bucket = aws_s3_bucket.codepipeline_artifacts_store_bucket_versioning.id
+  bucket = aws_s3_bucket.codepipeline_artifacts_store.id
 
   rule {
     id = "AllObjects"
