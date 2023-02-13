@@ -190,7 +190,10 @@ data "aws_iam_policy_document" "events_publish_sns" {
 
     principals {
       type        = "Service"
-      identifiers = ["events.amazonaws.com"]
+      identifiers = [
+        "events.amazonaws.com",
+        "s3.amazonaws.com"
+      ]
     }
 
     resources = [module.sns_topic.sns_topic_arn]
