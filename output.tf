@@ -5,7 +5,7 @@ output "sns_topic_arn" {
 
 output "codepipeline_arn" {
   description = "ARN of the CodePipeline"
-  value = var.require_manual_approval ? aws_codepipeline.terraform.arn : aws_codepipeline.terraform_without_approval.arn
+  value = var.require_manual_approval ? aws_codepipeline.terraform[0].arn : aws_codepipeline.terraform_without_approval[0].arn
 }
 
 output "iam_role_arn" {
