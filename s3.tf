@@ -99,3 +99,35 @@ resource "aws_s3_bucket_notification" "artifact_store_bucket_notificaction" {
     events        = ["s3:ObjectRemoved:*"] # Permanently deleted, Delete marker created
   }
 }
+
+# AWS Foundational Security Best Practices v1.0.0: S3 bucket server access logging should be enabled
+# For this we would need to create new bucket!
+resource "aws_s3_bucket_logging" "codepipeline_artifacts_store_logging" {
+  bucket = aws_s3_bucket.codepipeline_artifacts_store.id
+
+  target_bucket = "nets-ms-s3-server-access-logs-bucket"
+  target_prefix = "${aws_s3_bucket.config_bucket.id}-log/"
+}
+
+module "s3-server-access-logs" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "3.6.1"
+
+  bucket        = "logs-${random_pet.this.id}"
+  acl           = "log-delivery-write"
+  force_destroy = true
+
+  attach_deny_insecure_transport_policy = true
+  attach_require_latest_tls_policy      = true
+
+  tags = local.tags
+
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        kms_master_key_id = aws_kms_key.objects.arn
+        sse_algorithm     = "aws:kms"
+      }
+    }
+  }
+}
