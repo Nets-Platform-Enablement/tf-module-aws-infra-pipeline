@@ -22,7 +22,7 @@ resource "aws_codebuild_project" "tflint" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
   }
 
@@ -51,7 +51,7 @@ resource "aws_codebuild_project" "checkov" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
   }
 
@@ -80,7 +80,7 @@ resource "aws_codebuild_project" "tf_plan" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
@@ -113,7 +113,7 @@ resource "aws_codebuild_project" "tf_apply" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
+    image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
