@@ -189,7 +189,7 @@ data "aws_iam_policy_document" "events_publish_sns" {
     actions = ["SNS:Publish"]
 
     principals {
-      type        = "Service"
+      type = "Service"
       identifiers = [
         "events.amazonaws.com",
         "s3.amazonaws.com"
