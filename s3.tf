@@ -4,6 +4,13 @@ resource "aws_s3_bucket" "codepipeline_artifacts_store" {
   force_destroy = true
 }
 
+resource "aws_s3_bucket_ownership_controls" "owner" {
+  bucket = aws_s3_bucket.codepipeline_artifacts_store.bucket
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 resource "aws_s3_bucket_acl" "codepipeline_artifacts_store_acl" {
   bucket = aws_s3_bucket.codepipeline_artifacts_store.bucket
   acl    = "private"
