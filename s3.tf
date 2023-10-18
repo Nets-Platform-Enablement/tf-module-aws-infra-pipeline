@@ -5,8 +5,9 @@ resource "aws_s3_bucket" "codepipeline_artifacts_store" {
 }
 
 resource "aws_s3_bucket_acl" "codepipeline_artifacts_store_acl" {
-  bucket = aws_s3_bucket.codepipeline_artifacts_store.bucket
-  acl    = "private"
+  bucket     = aws_s3_bucket.codepipeline_artifacts_store.bucket
+  acl        = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.owner]
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "codepipeline_artifacts_store" {
