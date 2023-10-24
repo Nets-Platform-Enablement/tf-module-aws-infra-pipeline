@@ -14,6 +14,7 @@ phases:
   build:
     commands:   
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
+      - export CHECKOV_ENABLE_MODULES_FOREACH_HANDLING=false
       %{ if SKIP-CHECK != "" }
       - checkov --directory ./ --soft-fail --skip-check ${SKIP-CHECK}
       %{ else }
