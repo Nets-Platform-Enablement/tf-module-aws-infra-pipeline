@@ -18,7 +18,7 @@ resource "aws_kms_key" "sns_topic_encryption" {
   tags                    = local.tags
 }
 resource "aws_kms_alias" "sns_topic_s3_encryption" {
-  name          = "alias/sns_topic_encrypt"
+  name          = "alias/${local.name}_sns_topic_encrypt"
   target_key_id = aws_kms_key.sns_topic_encryption.key_id
 }
 data "aws_iam_policy_document" "sns-topic-policy" {
