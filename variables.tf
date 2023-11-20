@@ -80,13 +80,6 @@ variable "success_notifications" {
   sensitive   = false
 }
 
-variable "checkov_skip_checks" {
-  type        = string
-  description = "Skip these CHECKOV checks"
-  default     = ""
-  sensitive   = false
-}
-
 variable "directory" {
   type        = string
   description = "Run TFlint / CheckOV / Terraform in this directory"

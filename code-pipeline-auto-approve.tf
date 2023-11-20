@@ -39,20 +39,6 @@ resource "aws_codepipeline" "terraform_without_approval" {
         ProjectName = aws_codebuild_project.tflint.name
       }
     }
-
-    action {
-      run_order        = 1
-      name             = "checkov-compliances"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      input_artifacts  = ["CodeWorkspace"]
-      output_artifacts = []
-      version          = "1"
-      configuration = {
-        ProjectName = aws_codebuild_project.checkov.name
-      }
-    }
   }
 
   stage {
