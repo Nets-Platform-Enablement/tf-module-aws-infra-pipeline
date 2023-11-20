@@ -82,7 +82,7 @@ variable "success_notifications" {
 
 variable "directory" {
   type        = string
-  description = "Run TFlint / CheckOV / Terraform in this directory"
+  description = "Run TFlint / Terraform in this directory"
   default     = ""
   sensitive   = false
 }
