@@ -78,7 +78,6 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
       ],
       "project-name" : [
         aws_codebuild_project.tflint.name,
-        aws_codebuild_project.checkov.name,
         aws_codebuild_project.tf_plan.name,
         aws_codebuild_project.tf_apply.name,
       ]
