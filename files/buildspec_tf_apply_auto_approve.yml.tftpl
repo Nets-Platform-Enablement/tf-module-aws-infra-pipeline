@@ -11,7 +11,7 @@ phases:
   build:
     commands:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
-      - terraform init -no-color
+      - terraform init -upgrade -no-color
       - terraform plan --var-file $VAR_FILE -out /tmp/updates.tfp -no-color
       - terraform apply /tmp/updates.tfp -no-color
 
