@@ -67,16 +67,16 @@ variable "emails" {
 }
 
 variable "failure_notifications" {
-  type        = bool
-  description = "Whether or not you want notifications on failed builds"
-  default     = true
+  type        = string
+  description = "Whether or not you want notifications on failed builds [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS]"
+  default     = "DISABLED"
   sensitive   = false
 }
 
 variable "success_notifications" {
-  type        = bool
-  description = "Whether or not you want notifications on succeeded builds"
-  default     = false
+  type        = string
+  description = "Whether or not you want notifications on succeeded builds [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS]"
+  default     = "DISABLED"
   sensitive   = false
 }
 

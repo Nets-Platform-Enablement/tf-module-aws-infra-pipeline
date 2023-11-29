@@ -63,7 +63,7 @@ resource "aws_sns_topic_subscription" "send_email" {
 resource "aws_cloudwatch_event_rule" "failed_builds" {
   name        = "${local.name}-${var.environment}-build-failure"
   description = "Managed by Terraform"
-  is_enabled  = var.failure_notifications
+  state       = var.failure_notifications
   event_pattern = jsonencode({
     "source" : [
       "aws.codebuild"
@@ -113,7 +113,7 @@ EOF
 resource "aws_cloudwatch_event_rule" "succes_builds" {
   name        = "${local.name}-${var.environment}-build-succeeded"
   description = "Managed by Terraform"
-  is_enabled  = var.success_notifications
+  state       = var.success_notifications
   event_pattern = jsonencode({
     "source" : [
       "aws.codebuild"
