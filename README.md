@@ -6,19 +6,22 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 - Pipeline _without_ manual approval
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   tags                  = local.tags
 }
+data "aws_dynamodb_table" "tf_state" {
+  name = "terraform-state-lock-sample-project"
+}
 ```
 
 - Pipeline with manual approval, failure and success reporting, custom variables file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
@@ -26,11 +29,16 @@ module "tf_infra_pipeline" {
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
   emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
-  failure_notifications = true
-  success_notifications = true
+  failure_notifications = "ENABLED"
+  success_notifications = "ENABLED"
   managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
   tags                  = local.tags
+  directory             = ""
 }
+data "aws_dynamodb_table" "tf_state" {
+  name = "terraform-state-lock-sample-project"
+}
+
 ```
 ## Variables
 | Name | Description | Type | Default | Notes |
@@ -45,8 +53,8 @@ module "tf_infra_pipeline" {
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
-| failure_notifications | Whether or not you want notifications on failed builds | bool | true |  |
-| success_notifications | Whether or not you want notifications on succeeded builds | bool | false |  |
+| failure_notifications | Whether or not you want notifications on failed builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
+| success_notifications | Whether or not you want notifications on succeeded builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | directory | directory for terraform hcl | string | "" | use "<folder>" if your code is in sub folder |
 | extra_build_artifacts | filenames to be included for codepipeline apply step | set(string) | ([""]) |
 ## Notes
