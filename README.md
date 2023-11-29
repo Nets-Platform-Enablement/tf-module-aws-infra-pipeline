@@ -29,8 +29,8 @@ module "tf_infra_pipeline" {
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
   emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
-  failure_notifications = true
-  success_notifications = true
+  failure_notifications = "ENABLED"
+  success_notifications = "ENABLED"
   managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
   tags                  = local.tags
   directory             = ""
@@ -53,8 +53,8 @@ data "aws_dynamodb_table" "tf_state" {
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
-| failure_notifications | Whether or not you want notifications on failed builds | bool | true |  |
-| success_notifications | Whether or not you want notifications on succeeded builds | bool | false |  |
+| failure_notifications | Whether or not you want notifications on failed builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
+| success_notifications | Whether or not you want notifications on succeeded builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | directory | directory for terraform hcl | string | "" | use "<folder>" if your code is in sub folder |
 | extra_build_artifacts | filenames to be included for codepipeline apply step | set(string) | ([""]) |
 ## Notes
