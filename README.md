@@ -6,19 +6,22 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 - Pipeline _without_ manual approval
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   tags                  = local.tags
 }
+data "aws_dynamodb_table" "tf_state" {
+  name = "terraform-state-lock-sample-project"
+}
 ```
 
 - Pipeline with manual approval, failure and success reporting, custom variables file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
@@ -30,7 +33,12 @@ module "tf_infra_pipeline" {
   success_notifications = true
   managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
   tags                  = local.tags
+  directory             = ""
 }
+data "aws_dynamodb_table" "tf_state" {
+  name = "terraform-state-lock-sample-project"
+}
+
 ```
 ## Variables
 | Name | Description | Type | Default | Notes |
