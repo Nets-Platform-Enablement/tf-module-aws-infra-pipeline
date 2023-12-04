@@ -13,8 +13,8 @@ phases:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init -upgrade -no-color
       - terraform validate
-      - echo "Current Terraform State on `date`"
-      - terraform show
+      #- echo "Current Terraform State on `date`"
+      #- terraform show
       - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
       - terraform plan --var-file $VAR_FILE -no-color -out thePlan.tfp
       - echo "Terraform plan saved to thePlan.tfp"

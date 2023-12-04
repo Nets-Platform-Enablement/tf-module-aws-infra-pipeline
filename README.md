@@ -11,6 +11,7 @@ module "tf_infra_pipeline" {
   environment           = "dev"
   require_manual_approval = false
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
+  variables_file        = "environment/dev.tfvars"
   tags                  = local.tags
 }
 data "aws_dynamodb_table" "tf_state" {
