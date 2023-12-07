@@ -19,7 +19,7 @@ data "aws_dynamodb_table" "tf_state" {
 }
 ```
 
-- Pipeline with manual approval, failure and success reporting, custom variables file, custom branch-name
+- Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
 ```
 module "tf_infra_pipeline" {
   source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
@@ -29,6 +29,7 @@ module "tf_infra_pipeline" {
   require_manual_approval = true
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
+  tfbackend_file        = "environment/prod.s3.tfbackend"
   emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
   failure_notifications = "ENABLED"
   success_notifications = "ENABLED"
