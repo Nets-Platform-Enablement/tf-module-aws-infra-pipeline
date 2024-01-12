@@ -11,7 +11,7 @@ phases:
   build:
     commands:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
-      - terraform init -upgrade -no-color
+      - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
       - terraform validate
       #- echo "Current Terraform State on `date`"
       #- terraform show

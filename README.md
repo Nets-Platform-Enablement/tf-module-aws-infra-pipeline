@@ -19,7 +19,7 @@ data "aws_dynamodb_table" "tf_state" {
 }
 ```
 
-- Pipeline with manual approval, failure and success reporting, custom variables file, custom branch-name
+- Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
 ```
 module "tf_infra_pipeline" {
   source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
@@ -29,6 +29,7 @@ module "tf_infra_pipeline" {
   require_manual_approval = true
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
+  tfbackend_file        = "environment/prod.s3.tfbackend"
   emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
   failure_notifications = "ENABLED"
   success_notifications = "ENABLED"
@@ -51,6 +52,7 @@ data "aws_dynamodb_table" "tf_state" {
 | aws_region | AWS region to deploy pipeline to | string | `eu-central-1` |  |
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
+| tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |

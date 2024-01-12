@@ -45,6 +45,13 @@ variable "variables_file" {
   sensitive   = false
 }
 
+variable "tfbackend_file" {
+  type        = string
+  description = "File to provide terraform the backend config with 'terraform init -backend-config {tfbackend_file}'"
+  default     = ""
+  sensitive   = false
+}
+
 variable "tags" {
   type        = map(any)
   description = "Map of Tag-Value -pairs to be added to all resources"

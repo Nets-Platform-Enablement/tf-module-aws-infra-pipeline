@@ -32,7 +32,8 @@ resource "aws_codebuild_project" "tflint" {
       "${path.module}/files/buildspec_tflint.yml.tftpl",
       {
         TF_VERSION = local.terraform_version,
-        DIRECTORY  = var.directory
+        DIRECTORY  = var.directory,
+        BACKENDFILE = var.tfbackend_file
       }
     )
   }
@@ -65,7 +66,8 @@ resource "aws_codebuild_project" "tf_plan" {
       {
         TF_VERSION  = local.terraform_version,
         DIRECTORY   = var.directory,
-        EXTRA_FILES = var.extra_build_artifacts
+        EXTRA_FILES = var.extra_build_artifacts,
+        BACKENDFILE = var.tfbackend_file
       }
     )
   }
@@ -97,7 +99,8 @@ resource "aws_codebuild_project" "tf_apply" {
       "${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}",
       {
         TF_VERSION = local.terraform_version,
-        DIRECTORY  = var.directory
+        DIRECTORY  = var.directory,
+        BACKENDFILE = var.tfbackend_file
       }
     )
   }
