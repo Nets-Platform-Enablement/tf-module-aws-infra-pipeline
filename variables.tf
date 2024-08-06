@@ -45,6 +45,12 @@ variable "variables_file" {
   sensitive   = false
 }
 
+variable "terraform_version" {
+  description = "The version of Terraform to use"
+  type        = string
+  default     = ""
+}
+
 variable "tfbackend_file" {
   type        = string
   description = "File to provide terraform the backend config with 'terraform init -backend-config {tfbackend_file}'"
