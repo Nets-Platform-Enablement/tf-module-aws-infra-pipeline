@@ -176,7 +176,7 @@ resource "aws_iam_role_policy" "codebuild" {
           "Effect" : "Allow",
           "Action" : [
             "logs:GetLogEvents",
-            "logs:WriteLogStream",
+            "logs:PutLogEvents",
           ],
           "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
         },
@@ -189,7 +189,7 @@ resource "aws_iam_role_policy" "codebuild" {
             "logs:PutRetentionPolicy",
             "logs:CreateLogGroup"
           ],
-          "Resource" : ["arn:aws:codebuild:*:*:build/*"]
+          "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
         },
       ]
     }
