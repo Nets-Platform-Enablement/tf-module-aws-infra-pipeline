@@ -37,6 +37,13 @@ resource "aws_codebuild_project" "tflint" {
       }
     )
   }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild_log_group.name
+      #stream_name = "log-stream"
+    }
+  }
 }
 
 #Do show and plan for dry run Terraform
@@ -71,6 +78,13 @@ resource "aws_codebuild_project" "tf_plan" {
       }
     )
   }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild_log_group.name
+      #stream_name = "log-stream"
+    }
+  }
 }
 
 resource "aws_codebuild_project" "tf_apply" {
@@ -103,5 +117,12 @@ resource "aws_codebuild_project" "tf_apply" {
         BACKENDFILE = var.tfbackend_file
       }
     )
+  }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild_log_group.name
+      #stream_name = "log-stream"
+    }
   }
 }

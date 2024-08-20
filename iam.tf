@@ -172,6 +172,25 @@ resource "aws_iam_role_policy" "codebuild" {
           "Action" : "iam:PassRole",
           "Resource" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*"
         },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "logs:GetLogEvents",
+            "logs:WriteLogStream",
+          ],
+          "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:DescribeLogStreams",
+            "logs:PutRetentionPolicy",
+            "logs:CreateLogGroup"
+          ],
+          "Resource" : ["arn:aws:codebuild:*:*:build/*"]
+        },
       ]
     }
   )
