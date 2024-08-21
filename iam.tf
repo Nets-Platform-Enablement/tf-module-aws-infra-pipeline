@@ -246,7 +246,7 @@ resource "aws_iam_role_policy" "codebuild_additionals" {
     var.role_policy
   )
 }
-
+/*
 resource "aws_sns_topic_policy" "terraform_updates" {
   arn    = module.sns_topic.topic_arn
   policy = data.aws_iam_policy_document.events_publish_sns.json
@@ -268,3 +268,4 @@ data "aws_iam_policy_document" "events_publish_sns" {
     resources = [module.sns_topic.topic_arn]
   }
 }
+*/
