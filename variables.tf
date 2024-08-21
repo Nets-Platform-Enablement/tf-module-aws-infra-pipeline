@@ -108,8 +108,32 @@ variable "extra_build_artifacts" {
 }
 
 variable "role_policy" {
-  type        = map
+  type        = object({
+    policy_id = optional(string, null)
+    version   = optional(string, null)
+    statement = list(object({
+      sid           = optional(string, null)
+      effect        = optional(string, null)
+      actions       = optional(list(string), null)
+      not_actions   = optional(list(string), null)
+      resources     = optional(list(string), null)
+      not_resources = optional(list(string), null)
+      conditions = optional(list(object({
+        test     = string
+        variable = string
+        values   = list(string)
+      })), [])
+      principals = optional(list(object({
+        type        = string
+        identifiers = list(string)
+      })), [])
+      not_principals = optional(list(object({
+        type        = string
+        identifiers = list(string)
+      })), [])
+    }))
+  })
   description = "IAM policy document to be attached to CodeBuild role"
-  default     = {}
+  default     = {statement = []}
   sensitive   = false
 }
