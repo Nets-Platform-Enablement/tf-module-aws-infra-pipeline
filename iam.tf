@@ -34,7 +34,10 @@ resource "aws_iam_role_policy" "codepipeline" {
           "Action" : [
             "s3:*"
           ],
-          "Resource" : "*"
+          "Resource" : [
+            aws_s3_bucket.codepipeline_artifacts_store.arn,
+            "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*"
+          ]
         },
         {
           "Effect" : "Allow",
