@@ -68,7 +68,8 @@ resource "aws_iam_role_policy" "codepipeline" {
           "Effect" : "Allow",
           "Action" : [
             "kms:GenerateDataKey",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "kms:ListAliases"
           ],
           "Resource" : [
             "*"
@@ -159,6 +160,15 @@ resource "aws_iam_role_policy" "codebuild" {
         },
         {
           "Effect" : "Allow",
+          "Action" : [
+            "iam:ListPolicies",
+            "iam:GetPolicy",
+            "iam:GetPolicyVersion",
+          ],
+          "Resource" : ["*"]
+        },
+        {
+          "Effect" : "Allow",
           "Action" : "sts:GetServiceBearerToken",
           "Resource" : "*",
           "Condition" : {
@@ -190,6 +200,30 @@ resource "aws_iam_role_policy" "codebuild" {
             "logs:CreateLogGroup"
           ],
           "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "ec2:DescribeVpcAttribute",
+          ],
+          "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "SNS:*",
+          ],
+          "Resource" : [module.sns_topic.topic_arn]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "events:*",
+          ],
+          "Resource" : [
+            aws_cloudwatch_event_rule.failed_builds.arn,
+            aws_cloudwatch_event_rule.succes_builds.arn
+          ]
         },
       ]
     }

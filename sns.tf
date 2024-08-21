@@ -1,7 +1,7 @@
 #Creating SNS topic
 module "sns_topic" {
-  source  = "terraform-aws-modules/sns/aws"
-  version = "~> 3.0"
+  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=6404f81"
+  #version = "6.1.0"
 
   name              = "${local.name}-${var.environment}-updates"
   kms_master_key_id = aws_kms_key.sns_topic_encryption.id
