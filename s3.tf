@@ -108,6 +108,6 @@ resource "aws_s3_bucket_notification" "artifact_store_bucket_notificaction" {
   }
   depends_on = [
     # SNS Topic policy needs to be deployed before notifications can be set up
-    aws_sns_topic_policy.terraform_updates
+    module.sns_topic
   ]
 }
