@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "sns-topic-policy" {
 
 #Create subcriptions to sns topic
 resource "aws_sns_topic_subscription" "send_email" {
-  topic_arn = module.sns_topic.sns_topic_arn
+  topic_arn = module.sns_topic.topic_arn
   protocol  = "email"
   for_each  = var.emails
   endpoint  = each.value
@@ -89,7 +89,7 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
 resource "aws_cloudwatch_event_target" "sns_failed_builds" {
   rule      = aws_cloudwatch_event_rule.failed_builds.name
   target_id = "SendToSNS"
-  arn       = module.sns_topic.sns_topic_arn
+  arn       = module.sns_topic.topic_arn
   input_transformer {
     input_paths = {
       project = "$.detail.project-name",
@@ -136,7 +136,7 @@ resource "aws_cloudwatch_event_rule" "succes_builds" {
 resource "aws_cloudwatch_event_target" "sns_success_builds" {
   rule      = aws_cloudwatch_event_rule.succes_builds.name
   target_id = "SendToSNS"
-  arn       = module.sns_topic.sns_topic_arn
+  arn       = module.sns_topic.topic_arn
   input_transformer {
     input_paths = {
       project = "$.detail.project-name",

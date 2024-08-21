@@ -61,7 +61,7 @@ resource "aws_iam_role_policy" "codepipeline" {
             "sns:Publish"
           ],
           "Resource" : [
-            module.sns_topic.sns_topic_arn
+            module.sns_topic.topic_arn
           ]
         },
         {
@@ -139,7 +139,7 @@ resource "aws_iam_role_policy" "codebuild" {
           "Action" : [
             "s3:*"
           ],
-          "Resource" : "*"
+          "Resource" : [aws_s3_bucket.codepipeline_artifacts_store.arn]
         },
         {
           "Effect" : "Allow",
@@ -230,8 +230,19 @@ resource "aws_iam_role_policy" "codebuild" {
   )
 }
 
+# User defined IAM policy for CodeBuild role
+resource "aws_iam_role_policy" "codebuild_additionals" {
+  count = contains(keys(var.role_policy), "Statement") ? 1 : 0 # Do not add if role_policy is not given
+  name = "CodebuildRolePolicy-${local.name}-additional"
+  role = aws_iam_role.codebuild.id
+
+  policy = jsonencode(
+    var.role_policy
+  )
+}
+
 resource "aws_sns_topic_policy" "terraform_updates" {
-  arn    = module.sns_topic.sns_topic_arn
+  arn    = module.sns_topic.topic_arn
   policy = data.aws_iam_policy_document.events_publish_sns.json
 }
 
@@ -248,6 +259,6 @@ data "aws_iam_policy_document" "events_publish_sns" {
       ]
     }
 
-    resources = [module.sns_topic.sns_topic_arn]
+    resources = [module.sns_topic.topic_arn]
   }
 }

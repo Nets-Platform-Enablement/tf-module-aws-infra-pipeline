@@ -103,7 +103,7 @@ data "aws_iam_policy_document" "allow_ssl_requests_only" {
 resource "aws_s3_bucket_notification" "artifact_store_bucket_notificaction" {
   bucket = aws_s3_bucket.codepipeline_artifacts_store.id
   topic {
-    topic_arn = module.sns_topic.sns_topic_arn
+    topic_arn = module.sns_topic.topic_arn
     events    = ["s3:ObjectRemoved:*"] # Permanently deleted, Delete marker created
   }
   depends_on = [

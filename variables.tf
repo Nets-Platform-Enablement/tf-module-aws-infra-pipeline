@@ -106,3 +106,10 @@ variable "extra_build_artifacts" {
   default     = ([""])
   sensitive   = false
 }
+
+variable "role_policy" {
+  type        = map
+  description = "IAM policy document to be attached to CodeBuild role"
+  default     = {}
+  sensitive   = false
+}
