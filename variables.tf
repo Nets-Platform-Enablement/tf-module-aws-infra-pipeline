@@ -110,7 +110,7 @@ variable "extra_build_artifacts" {
 variable "role_policy" {
   type        = object({
     Policy_id = optional(string, null)
-    Version   = optional(string, null)
+    Version   = optional(string, "2012-10-17")
     Statement = list(object({
       Sid           = optional(string, null)
       Effect        = optional(string, null)
