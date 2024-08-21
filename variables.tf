@@ -66,7 +66,7 @@ variable "tags" {
 }
 
 variable "managed_policies" {
-  type        = list(string)
+  type        = set(string)
   description = "List of managed AWS Policies to attach to pipeline, for example ['AmazonRDSFullAccess']"
   default     = []
   sensitive   = false

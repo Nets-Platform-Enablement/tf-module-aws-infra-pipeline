@@ -123,10 +123,19 @@ resource "aws_iam_role" "codebuild" {
       ]
     }
   )
-
+  # Hard limit of 10 Managed policies
   managed_policy_arns = [
-    for n in keys(data.aws_iam_policy.managed) : data.aws_iam_policy.managed[n].arn
+    for n in keys(data.aws_iam_policy.managed_default) : data.aws_iam_policy.managed_default[n].arn
   ]
+}
+
+# Attach overflow 
+resource "aws_iam_role_policy" "aws_managed" {
+  for_each = tomap(data.aws_iam_policy.managed)
+  name = "CodebuildRolePolicy-${each.key}"
+  role = aws_iam_role.codebuild.id
+
+  policy = each.value.policy
 }
 
 resource "aws_iam_role_policy" "codebuild" {
@@ -246,26 +255,3 @@ resource "aws_iam_role_policy" "codebuild_additionals" {
     var.role_policy
   )
 }
-/*
-resource "aws_sns_topic_policy" "terraform_updates" {
-  arn    = module.sns_topic.topic_arn
-  policy = data.aws_iam_policy_document.events_publish_sns.json
-}
-
-data "aws_iam_policy_document" "events_publish_sns" {
-  statement {
-    effect  = "Allow"
-    actions = ["SNS:Publish"]
-
-    principals {
-      type = "Service"
-      identifiers = [
-        "events.amazonaws.com",
-        "s3.amazonaws.com"
-      ]
-    }
-
-    resources = [module.sns_topic.topic_arn]
-  }
-}
-*/
