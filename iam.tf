@@ -153,7 +153,8 @@ resource "aws_iam_role_policy" "codebuild" {
           ],
           "Resource" : [
             aws_s3_bucket.codepipeline_artifacts_store.arn,
-            "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*"
+            "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*",
+            "arn:aws:s3:::*" # terraform state bucket is not known, but CodeBuild needs write access
           ]
         },
         {
@@ -171,7 +172,7 @@ resource "aws_iam_role_policy" "codebuild" {
             "iam:ListRolePolicies",
             "iam:ListAttachedRolePolicies"
           ],
-          "Resource" : ["${aws_iam_role.codepipeline.arn}", "${aws_iam_role.codebuild.arn}"]
+          "Resource" : [aws_iam_role.codepipeline.arn, aws_iam_role.codebuild.arn]
         },
         {
           "Effect" : "Allow",

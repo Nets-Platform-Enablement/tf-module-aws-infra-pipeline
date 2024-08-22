@@ -17,8 +17,10 @@ data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy" "managed_default" {
   for_each = toset([
-    "AWSCodeStarFullAccess",
+    "IAMFullAccess",
+    "AWSCodePipeline_FullAccess",
     "AWSCodeBuildAdminAccess",
+    "AWSCodeStarFullAccess",
   ])
   
   name = each.value

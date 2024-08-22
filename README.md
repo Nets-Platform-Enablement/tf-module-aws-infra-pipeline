@@ -6,7 +6,7 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 - Pipeline _without_ manual approval
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.0.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
@@ -22,7 +22,7 @@ data "aws_dynamodb_table" "tf_state" {
 - Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v1.2.4"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.0.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
@@ -34,6 +34,18 @@ module "tf_infra_pipeline" {
   failure_notifications = "ENABLED"
   success_notifications = "ENABLED"
   managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
+  rope_policy           = {
+    Statement = [
+      {
+        Sid      = "EC2FullAccess"
+        Effect   = "Allow"
+        Action   = [
+          "ec2:*",
+        ]
+        Resource = "*"
+      },
+    ]
+  }
   tags                  = local.tags
   directory             = ""
 }
@@ -55,6 +67,7 @@ data "aws_dynamodb_table" "tf_state" {
 | tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
+| role_policy | A map describing IAM Role Policy, similar to [iam_role_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy). Module will format the value into json-string. | object({}) | {Statement = []} |  |
 | emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
 | failure_notifications | Whether or not you want notifications on failed builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | success_notifications | Whether or not you want notifications on succeeded builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
@@ -65,14 +78,24 @@ data "aws_dynamodb_table" "tf_state" {
 - After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.
 - The CodeBuild -project created by this module will by default get following AWS managed policices:
   - IAMFullAccess
-  - AWSKeyManagementServicePowerUser
-  - CloudWatchLogsFullAccess
-  - CloudWatchEventsFullAccess
   - AWSCodePipeline_FullAccess
   - AWSCodeStarFullAccess
   - AWSCodeBuildAdminAccess
-  - AWSCodeArtifactAdminAccess
-  - AmazonSNSFullAccess
 - If terraform should be able to manage any additional AWS services, you can provide AWS Policies using `managed_policies` variable.
+- For defining more granular permissions, use `role_policy` variable.
 - If the pipeline is trying to make changes to _itself_, things most likely will break. In such case, perform `terraform apply` manually.
-- Note! There's a default limit of 10 attached AWS managed policies per role. If you add more than 10, you'll need to create a limit increase request.
+
+## Releases
+
+### v.2.0.0 Permissions overhault
+
+- *Breaking change*: Removed multiple AWS managed role policies from module in favor of more granual permission definition.
+- AWS Managed policies `managed_policies` now support more than 10.
+- New setting: `role_policy` for defining more detailed permissions than `managed_policies` can do.
+
+### v.1.3.0 Support for custom .tfbackend files
+- New setting: `tfbackend_file`, File to provide terraform the backend config with
+
+### Earlier
+
+Please refer to [Releases GitHub-page](https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline/releases)
