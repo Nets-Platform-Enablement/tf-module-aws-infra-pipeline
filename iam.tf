@@ -247,7 +247,7 @@ resource "aws_iam_role_policy" "codebuild" {
 
 # User defined IAM policy for CodeBuild role
 resource "aws_iam_role_policy" "codebuild_additionals" {
-  count = contains(keys(var.role_policy), "Statement") ? 1 : 0 # Do not add if role_policy is not given
+  count = length(var.role_policy.Statement) > 0 ? 1 : 0 # Do not add if role_policy is not given
   name = "CodebuildRolePolicy-${local.name}-additional"
   role = aws_iam_role.codebuild.id
 
