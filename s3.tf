@@ -111,3 +111,16 @@ resource "aws_s3_bucket_notification" "artifact_store_bucket_notificaction" {
     module.sns_topic
   ]
 }
+
+# Key for Artifact Store
+resource "aws_kms_key" "codeartifact_key" {
+  description             = "Key for encrypting terraform plans"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.sns-topic-policy.json
+  tags                    = local.tags
+}
+resource "aws_kms_alias" "codeartifact_key" {
+  name          = "alias/${local.name}_codeartifact_key"
+  target_key_id = aws_kms_key.codeartifact_key.key_id
+}
