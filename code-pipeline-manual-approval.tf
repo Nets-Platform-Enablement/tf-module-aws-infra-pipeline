@@ -97,4 +97,9 @@ resource "aws_codepipeline" "terraform" {
       }
     }
   }
+  artifact_store {
+    encryption_key {
+      id = "aws_kms_key.codebuild_key.key_id"
+    }
+  }
 }
