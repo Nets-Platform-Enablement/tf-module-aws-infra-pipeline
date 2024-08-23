@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       ]
     }
 
-    actions   = ["kms:Decrypt*", "kms:GenerateDataKey*"]
+    actions   = ["kms:Decrypt*", "kms:GenerateDataKey*", "kms:ListAliases"]
     resources = ["*"]
   }
 }
