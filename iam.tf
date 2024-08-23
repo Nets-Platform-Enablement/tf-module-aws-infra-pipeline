@@ -185,6 +185,25 @@ resource "aws_iam_role_policy" "codebuild" {
         },
         {
           "Effect" : "Allow",
+          "Action" : [
+            "kms:ListAliases"
+          ],
+          "Resource" : [
+            "*"
+          ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kms:*"
+          ],
+          "Resource" : [
+            aws_kms_key.codeartifact_key.arn,
+            aws_kms_key.sns_topic_encryption.arn,
+          ]
+        },
+        {
+          "Effect" : "Allow",
           "Action" : "sts:GetServiceBearerToken",
           "Resource" : "*",
           "Condition" : {
