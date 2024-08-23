@@ -47,9 +47,12 @@ data "aws_iam_policy_document" "sns-topic-policy" {
       ]
     }
 
-    actions   = ["kms:Decrypt*", "kms:GenerateDataKey*", "kms:ListAliases"]
+    actions   = ["kms:Decrypt*", "kms:GenerateDataKey*"]
     resources = ["*"]
   }
+  #checkov:skip=CKV_AWS_111; permissions given to single key(s)
+  #checkov:skip=CKV_AWS_109; CodeBuildRole needs editing permissions
+  #checkov:skip=CKV_AWS_356; "*" in this context is "this key"
 }
 
 #Create subcriptions to sns topic
