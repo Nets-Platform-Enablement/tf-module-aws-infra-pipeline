@@ -65,6 +65,7 @@ data "aws_dynamodb_table" "tf_state" {
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
 | tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
+| terraform_version | The version of Terraform to use | string | "1.9.3" | |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | role_policy | A map describing IAM Role Policy, similar to [iam_role_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy). Module will format the value into json-string. | object({}) | {Statement = []} |  |
@@ -87,11 +88,18 @@ data "aws_dynamodb_table" "tf_state" {
 
 ## Releases
 
-### v.2.0.0 Permissions overhault
+### v.2.0.0 Permissions overhaul
 
-- *Breaking change*: Removed multiple AWS managed role policies from module in favor of more granual permission definition.
-- AWS Managed policies `managed_policies` now support more than 10.
+- *Breaking change*: Removed multiple AWS managed role policies from module in favor of more granual permission definition. Adding following policies to `managed_policies` will result in same permissions as in *v1.3.0* or earlier.
+  - Removed policies:
+    - AWSKeyManagementServicePowerUser
+    - CloudWatchLogsFullAccess
+    - CloudWatchEventsFullAccess
+    - AWSCodeArtifactAdminAccess
+    - AmazonSNSFullAccess
+- AWS Managed policies `managed_policies` now support more than 10 policies.
 - New setting: `role_policy` for defining more detailed permissions than `managed_policies` can do.
+- New setting `terraform_version`
 
 ### v.1.3.0 Support for custom .tfbackend files
 - New setting: `tfbackend_file`, File to provide terraform the backend config with
