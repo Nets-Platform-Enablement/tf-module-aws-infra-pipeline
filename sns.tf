@@ -14,14 +14,14 @@ resource "aws_kms_key" "sns_topic_encryption" {
   description             = "Key for encrypting s3 sns topic"
   deletion_window_in_days = 7
   enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.sns-topic-policy.json
+  policy                  = data.aws_iam_policy_document.key-policy.json
   tags                    = local.tags
 }
 resource "aws_kms_alias" "sns_topic_s3_encryption" {
   name          = "alias/${local.name}_sns_topic_encrypt"
   target_key_id = aws_kms_key.sns_topic_encryption.key_id
 }
-data "aws_iam_policy_document" "sns-topic-policy" {
+data "aws_iam_policy_document" "key-policy" {
   statement {
     sid       = "Enable IAM User Permissions"
     effect    = "Allow"

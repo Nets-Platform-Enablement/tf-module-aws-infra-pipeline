@@ -117,7 +117,7 @@ resource "aws_kms_key" "codeartifact_key" {
   description             = "Key for encrypting terraform plans"
   deletion_window_in_days = 7
   enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.sns-topic-policy.json
+  policy                  = data.aws_iam_policy_document.key-policy.json
   tags                    = local.tags
 }
 resource "aws_kms_alias" "codeartifact_key" {
