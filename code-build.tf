@@ -1,15 +1,5 @@
 # CodeBuild
 
-#CloudWatch to log files
-resource "aws_cloudwatch_log_group" "codebuild_log_group" {
-  name = "${local.name}-logs"
-
-  tags = merge(local.tags,
-    {
-      Application = local.name
-  })
-  retention_in_days = 7
-}
 #Validate terraform
 resource "aws_codebuild_project" "tflint" {
   name         = "${local.name}-tflint"

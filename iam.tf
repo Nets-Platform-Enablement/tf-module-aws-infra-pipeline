@@ -34,7 +34,10 @@ resource "aws_iam_role_policy" "codepipeline" {
           "Action" : [
             "s3:*"
           ],
-          "Resource" : "*"
+          "Resource" : [
+            aws_s3_bucket.codepipeline_artifacts_store.arn,
+            "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*"
+          ]
         },
         {
           "Effect" : "Allow",
@@ -61,14 +64,15 @@ resource "aws_iam_role_policy" "codepipeline" {
             "sns:Publish"
           ],
           "Resource" : [
-            module.sns_topic.sns_topic_arn
+            module.sns_topic.topic_arn
           ]
         },
         {
           "Effect" : "Allow",
           "Action" : [
             "kms:GenerateDataKey",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "kms:ListAliases"
           ],
           "Resource" : [
             "*"
@@ -119,10 +123,19 @@ resource "aws_iam_role" "codebuild" {
       ]
     }
   )
-
+  # Hard limit of 10 Managed policies
   managed_policy_arns = [
-    for n in keys(data.aws_iam_policy.managed) : data.aws_iam_policy.managed[n].arn
+    for n in keys(data.aws_iam_policy.managed_default) : data.aws_iam_policy.managed_default[n].arn
   ]
+}
+
+# Attach overflow 
+resource "aws_iam_role_policy" "aws_managed" {
+  for_each = tomap(data.aws_iam_policy.managed)
+  name = "CodebuildRolePolicy-${each.key}"
+  role = aws_iam_role.codebuild.id
+
+  policy = each.value.policy
 }
 
 resource "aws_iam_role_policy" "codebuild" {
@@ -138,7 +151,11 @@ resource "aws_iam_role_policy" "codebuild" {
           "Action" : [
             "s3:*"
           ],
-          "Resource" : "*"
+          "Resource" : [
+            aws_s3_bucket.codepipeline_artifacts_store.arn,
+            "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*",
+            "arn:aws:s3:::*" # terraform state bucket is not known, but CodeBuild needs write access
+          ]
         },
         {
           "Effect" : "Allow",
@@ -155,7 +172,35 @@ resource "aws_iam_role_policy" "codebuild" {
             "iam:ListRolePolicies",
             "iam:ListAttachedRolePolicies"
           ],
-          "Resource" : ["${aws_iam_role.codepipeline.arn}", "${aws_iam_role.codebuild.arn}"]
+          "Resource" : [aws_iam_role.codepipeline.arn, aws_iam_role.codebuild.arn]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "iam:ListPolicies",
+            "iam:GetPolicy",
+            "iam:GetPolicyVersion",
+          ],
+          "Resource" : ["*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kms:ListAliases"
+          ],
+          "Resource" : [
+            "*"
+          ]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "kms:*"
+          ],
+          "Resource" : [
+            aws_kms_key.codeartifact_key.arn,
+            aws_kms_key.sns_topic_encryption.arn,
+          ]
         },
         {
           "Effect" : "Allow",
@@ -172,29 +217,61 @@ resource "aws_iam_role_policy" "codebuild" {
           "Action" : "iam:PassRole",
           "Resource" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*"
         },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "logs:GetLogEvents",
+            "logs:PutLogEvents",
+          ],
+          "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:DescribeLogStreams",
+            "logs:PutRetentionPolicy",
+            "logs:CreateLogGroup"
+          ],
+          "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "ec2:DescribeVpcAttribute",
+          ],
+          "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "SNS:*",
+          ],
+          "Resource" : [module.sns_topic.topic_arn]
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "events:*",
+          ],
+          "Resource" : [
+            aws_cloudwatch_event_rule.failed_builds.arn,
+            aws_cloudwatch_event_rule.succes_builds.arn
+          ]
+        },
       ]
     }
   )
 }
 
-resource "aws_sns_topic_policy" "terraform_updates" {
-  arn    = module.sns_topic.sns_topic_arn
-  policy = data.aws_iam_policy_document.events_publish_sns.json
-}
+# User defined IAM policy for CodeBuild role
+resource "aws_iam_role_policy" "codebuild_additionals" {
+  count = length(var.role_policy.Statement) > 0 ? 1 : 0 # Do not add if role_policy is not given
+  name = "CodebuildRolePolicy-${local.name}-additional"
+  role = aws_iam_role.codebuild.id
 
-data "aws_iam_policy_document" "events_publish_sns" {
-  statement {
-    effect  = "Allow"
-    actions = ["SNS:Publish"]
-
-    principals {
-      type = "Service"
-      identifiers = [
-        "events.amazonaws.com",
-        "s3.amazonaws.com"
-      ]
-    }
-
-    resources = [module.sns_topic.sns_topic_arn]
-  }
+  policy = jsonencode(
+    var.role_policy
+  )
 }

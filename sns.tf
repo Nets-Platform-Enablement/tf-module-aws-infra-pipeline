@@ -1,7 +1,7 @@
 #Creating SNS topic
 module "sns_topic" {
-  source  = "terraform-aws-modules/sns/aws"
-  version = "~> 3.0"
+  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=6404f81"
+  #version = "6.1.0"
 
   name              = "${local.name}-${var.environment}-updates"
   kms_master_key_id = aws_kms_key.sns_topic_encryption.id
@@ -14,14 +14,14 @@ resource "aws_kms_key" "sns_topic_encryption" {
   description             = "Key for encrypting s3 sns topic"
   deletion_window_in_days = 7
   enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.sns-topic-policy.json
+  policy                  = data.aws_iam_policy_document.key-policy.json
   tags                    = local.tags
 }
 resource "aws_kms_alias" "sns_topic_s3_encryption" {
   name          = "alias/${local.name}_sns_topic_encrypt"
   target_key_id = aws_kms_key.sns_topic_encryption.key_id
 }
-data "aws_iam_policy_document" "sns-topic-policy" {
+data "aws_iam_policy_document" "key-policy" {
   statement {
     sid       = "Enable IAM User Permissions"
     effect    = "Allow"
@@ -50,11 +50,14 @@ data "aws_iam_policy_document" "sns-topic-policy" {
     actions   = ["kms:Decrypt*", "kms:GenerateDataKey*"]
     resources = ["*"]
   }
+  #checkov:skip=CKV_AWS_111; permissions given to single key(s)
+  #checkov:skip=CKV_AWS_109; CodeBuildRole needs editing permissions
+  #checkov:skip=CKV_AWS_356; "*" in this context is "this key"
 }
 
 #Create subcriptions to sns topic
 resource "aws_sns_topic_subscription" "send_email" {
-  topic_arn = module.sns_topic.sns_topic_arn
+  topic_arn = module.sns_topic.topic_arn
   protocol  = "email"
   for_each  = var.emails
   endpoint  = each.value
@@ -89,7 +92,7 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
 resource "aws_cloudwatch_event_target" "sns_failed_builds" {
   rule      = aws_cloudwatch_event_rule.failed_builds.name
   target_id = "SendToSNS"
-  arn       = module.sns_topic.sns_topic_arn
+  arn       = module.sns_topic.topic_arn
   input_transformer {
     input_paths = {
       project = "$.detail.project-name",
@@ -136,7 +139,7 @@ resource "aws_cloudwatch_event_rule" "succes_builds" {
 resource "aws_cloudwatch_event_target" "sns_success_builds" {
   rule      = aws_cloudwatch_event_rule.succes_builds.name
   target_id = "SendToSNS"
-  arn       = module.sns_topic.sns_topic_arn
+  arn       = module.sns_topic.topic_arn
   input_transformer {
     input_paths = {
       project = "$.detail.project-name",

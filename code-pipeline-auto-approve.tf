@@ -7,6 +7,10 @@ resource "aws_codepipeline" "terraform_without_approval" {
   artifact_store {
     location = aws_s3_bucket.codepipeline_artifacts_store.bucket
     type     = "S3"
+    encryption_key {
+      type  = "KMS"
+      id    = aws_kms_key.codeartifact_key.key_id
+    }
   }
   stage {
     name = "Clone"

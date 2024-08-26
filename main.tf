@@ -15,22 +15,18 @@ locals {
 
 data "aws_caller_identity" "current" {}
 
+data "aws_iam_policy" "managed_default" {
+  for_each = toset([
+    "IAMFullAccess",
+    "AWSCodePipeline_FullAccess",
+    "AWSCodeBuildAdminAccess",
+    "AWSCodeStarFullAccess",
+  ])
+  
+  name = each.value
+}
+
 data "aws_iam_policy" "managed" {
-  for_each = toset(
-    concat(
-      [
-        "IAMFullAccess",
-        "AWSKeyManagementServicePowerUser",
-        "CloudWatchLogsFullAccess",
-        "CloudWatchEventsFullAccess",
-        "AWSCodePipeline_FullAccess",
-        "AWSCodeStarFullAccess",
-        "AWSCodeBuildAdminAccess",
-        "AWSCodeArtifactAdminAccess",
-        "AmazonSNSFullAccess",
-      ],
-      var.managed_policies
-    )
-  )
+  for_each = var.managed_policies
   name = each.value
 }

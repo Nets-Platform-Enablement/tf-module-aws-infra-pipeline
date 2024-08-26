@@ -13,6 +13,10 @@ resource "aws_codepipeline" "terraform" {
   artifact_store {
     location = aws_s3_bucket.codepipeline_artifacts_store.bucket
     type     = "S3"
+    encryption_key {
+      type  = "KMS"
+      id    = aws_kms_key.codeartifact_key.key_id
+    }
   }
   stage {
     name = "Clone"
@@ -73,7 +77,7 @@ resource "aws_codepipeline" "terraform" {
       version   = "1"
 
       configuration = {
-        NotificationArn    = module.sns_topic.sns_topic_arn
+        NotificationArn    = module.sns_topic.topic_arn
         CustomData         = "This will deploy following ${local.name} IAC code changes into the ${var.environment} AWS environment"
         ExternalEntityLink = "https://${var.aws_region}.console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#logsV2:log-groups/log-group/$252Faws$252Fcodebuild$252F${local.name}-tf-plan"
       }

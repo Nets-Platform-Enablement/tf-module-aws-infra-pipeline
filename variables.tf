@@ -66,7 +66,7 @@ variable "tags" {
 }
 
 variable "managed_policies" {
-  type        = list(string)
+  type        = set(string)
   description = "List of managed AWS Policies to attach to pipeline, for example ['AmazonRDSFullAccess']"
   default     = []
   sensitive   = false
@@ -104,5 +104,15 @@ variable "extra_build_artifacts" {
   type        = set(string)
   description = "Include these extra file from Plan step to Apply step"
   default     = ([""])
+  sensitive   = false
+}
+
+variable "role_policy" {
+  type        = object({
+    Version   = optional(string, "2012-10-17")
+    Statement = list(any)
+  })
+  description = "IAM policy document to be attached to CodeBuild role"
+  default     = {Statement = []}
   sensitive   = false
 }

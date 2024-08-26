@@ -1,6 +1,6 @@
 output "sns_topic_arn" {
   description = "ARN of the SNS topic used by Infra Pipeline"
-  value       = module.sns_topic.sns_topic_arn
+  value       = module.sns_topic.topic_arn
 }
 
 output "codepipeline_arn" {
@@ -11,4 +11,9 @@ output "codepipeline_arn" {
 output "iam_role_arn" {
   description = "ARN for the IAM role used by CodeBuild"
   value       = aws_iam_role.codebuild.arn
+}
+
+output "iam_role_id" {
+  description = "ID for the IAM role used by CodeBuild"
+  value       = aws_iam_role.codebuild.id
 }

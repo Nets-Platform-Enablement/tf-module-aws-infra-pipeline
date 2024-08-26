@@ -103,11 +103,24 @@ data "aws_iam_policy_document" "allow_ssl_requests_only" {
 resource "aws_s3_bucket_notification" "artifact_store_bucket_notificaction" {
   bucket = aws_s3_bucket.codepipeline_artifacts_store.id
   topic {
-    topic_arn = module.sns_topic.sns_topic_arn
+    topic_arn = module.sns_topic.topic_arn
     events    = ["s3:ObjectRemoved:*"] # Permanently deleted, Delete marker created
   }
   depends_on = [
     # SNS Topic policy needs to be deployed before notifications can be set up
-    aws_sns_topic_policy.terraform_updates
+    module.sns_topic
   ]
+}
+
+# Key for Artifact Store
+resource "aws_kms_key" "codeartifact_key" {
+  description             = "Key for encrypting terraform plans"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.key-policy.json
+  tags                    = local.tags
+}
+resource "aws_kms_alias" "codeartifact_key" {
+  name          = "alias/${local.name}_codeartifact_key"
+  target_key_id = aws_kms_key.codeartifact_key.key_id
 }
