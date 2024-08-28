@@ -22,7 +22,7 @@ data "aws_dynamodb_table" "tf_state" {
 - Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.0.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
@@ -34,7 +34,7 @@ module "tf_infra_pipeline" {
   failure_notifications = "ENABLED"
   success_notifications = "ENABLED"
   managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
-  rope_policy           = {
+  role_policy           = {
     Statement = [
       {
         Sid      = "EC2FullAccess"
