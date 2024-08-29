@@ -1,11 +1,25 @@
 # CodeBuild
 
+# Key for CodeBuild projects
+resource "aws_kms_key" "codebuild" {
+  description             = "Key for encrypting CodeBuild projects"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.key-policy.json
+  tags                    = local.tags
+}
+resource "aws_kms_alias" "codebuild" {
+  name          = "alias/${local.name}_codebuild_key"
+  target_key_id = aws_kms_key.codebuild.key_id
+}
+
 #Validate terraform
 resource "aws_codebuild_project" "tflint" {
-  name         = "${local.name}-tflint"
-  description  = "Managed using Terraform"
-  service_role = aws_iam_role.codebuild.arn
-  tags         = local.tags
+  name            = "${local.name}-tflint"
+  description     = "Managed using Terraform"
+  service_role    = aws_iam_role.codebuild.arn
+  encryption_key  = aws_kms_key.codebuild.id
+  tags            = local.tags
   artifacts {
     type = "CODEPIPELINE"
   }
@@ -31,10 +45,11 @@ resource "aws_codebuild_project" "tflint" {
 
 #Do show and plan for dry run Terraform
 resource "aws_codebuild_project" "tf_plan" {
-  name         = "${local.name}-tf-plan"
-  description  = "Managed using Terraform"
-  service_role = aws_iam_role.codebuild.arn
-  tags         = local.tags
+  name            = "${local.name}-tf-plan"
+  description     = "Managed using Terraform"
+  service_role    = aws_iam_role.codebuild.arn
+  encryption_key  = aws_kms_key.codebuild.id
+  tags            = local.tags
   artifacts {
     type = "CODEPIPELINE"
   }
@@ -64,10 +79,11 @@ resource "aws_codebuild_project" "tf_plan" {
 }
 
 resource "aws_codebuild_project" "tf_apply" {
-  name         = "${local.name}-tf-apply"
-  description  = "Managed using Terraform"
-  service_role = aws_iam_role.codebuild.arn
-  tags         = local.tags
+  name            = "${local.name}-tf-apply"
+  description     = "Managed using Terraform"
+  service_role    = aws_iam_role.codebuild.arn
+  encryption_key  = aws_kms_key.codebuild.id
+  tags            = local.tags
 
   artifacts {
     type = "CODEPIPELINE"
