@@ -12,7 +12,7 @@ resource "aws_codebuild_project" "tflint" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/standard:7.0"
+    image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
   }
 
@@ -41,7 +41,7 @@ resource "aws_codebuild_project" "tf_plan" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/standard:7.0"
+    image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
@@ -75,7 +75,7 @@ resource "aws_codebuild_project" "tf_apply" {
 
   environment {
     compute_type = "BUILD_GENERAL1_SMALL"
-    image        = "aws/codebuild/standard:7.0"
+    image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
