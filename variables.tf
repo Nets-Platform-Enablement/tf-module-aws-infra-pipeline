@@ -116,3 +116,9 @@ variable "role_policy" {
   default     = {Statement = []}
   sensitive   = false
 }
+
+variable "codebuild_image_id" {
+  type        = string
+  default     = "aws/codebuild/standard:7.0"
+  description = "ID of the CodeBuild instance image"
+}

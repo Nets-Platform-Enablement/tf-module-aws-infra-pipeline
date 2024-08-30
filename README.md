@@ -6,7 +6,7 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 - Pipeline _without_ manual approval
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.1.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
@@ -22,13 +22,14 @@ data "aws_dynamodb_table" "tf_state" {
 - Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.0.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.1.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
   require_manual_approval = true
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
+  codebuild_image_id    = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
   tfbackend_file        = "environment/prod.s3.tfbackend"
   emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
   failure_notifications = "ENABLED"
@@ -66,6 +67,7 @@ data "aws_dynamodb_table" "tf_state" {
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
 | tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
 | terraform_version | The version of Terraform to use | string | "1.9.3" | |
+| codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | role_policy | A map describing IAM Role Policy, similar to [iam_role_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy). Module will format the value into json-string. | object({}) | {Statement = []} |  |
