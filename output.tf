@@ -17,3 +17,8 @@ output "iam_role_id" {
   description = "ID for the IAM role used by CodeBuild"
   value       = aws_iam_role.codebuild.id
 }
+
+output "artifact_bucket_id" {
+  description = "Bucket used for store terraform plan"
+  value       = aws_s3_bucket.codepipeline_artifacts_store.id
+}
