@@ -90,6 +90,12 @@ data "aws_dynamodb_table" "tf_state" {
 
 ## Releases
 
+### v.2.1.0 Customizable build image
+- New setting `codebuild_image_id`, by default "aws/codebuild/standard:7.0", more options at [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html)
+- New output: `artifact_bucket_id` ID of the bucket terraform plans are stored in
+- Fix: Deployment fails due to S3 Notification Configuration issue. Removed S3 notifications.
+- Fix: Name collision when creating multiple instances of the module
+
 ### v.2.0.0 Permissions overhaul
 
 - *Breaking change*: Removed multiple AWS managed role policies from module in favor of more granual permission definition. Adding following policies to `managed_policies` will result in same permissions as in *v1.3.0* or earlier.
