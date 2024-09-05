@@ -1,7 +1,7 @@
 #IAM for CodePipeline
 
 resource "aws_iam_role" "codepipeline" {
-  name        = "CodepipelineRole-${local.name}"
+  name_prefix = "CodepipelineRole-${local.name}"
   description = "CodePipeline Service Role for ${local.name} - Managed by Terraform"
   tags        = local.tags
 
@@ -104,7 +104,7 @@ resource "aws_iam_role_policy" "codepipeline" {
 #IAM for CodeBuild
 
 resource "aws_iam_role" "codebuild" {
-  name        = "CodebuildRole-${local.name}"
+  name_prefix = "CodebuildRole-${local.name}"
   description = "CodeBuild Service Role - Managed by Terraform"
   tags        = local.tags
 
