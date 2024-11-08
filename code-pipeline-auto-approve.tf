@@ -46,8 +46,8 @@ resource "aws_codepipeline" "terraform_without_approval" {
       dynamic "action" {
         for_each = var.enable_checkov ? [local.checks.tflint, local.checks.checkov] : [local.checks.tflint]
         content {
-          run_order        = each.key
-          name             = each.value.name
+          run_order        = action.key
+          name             = action.value.name
           category         = "Build"
           owner            = "AWS"
           provider         = "CodeBuild"
@@ -55,7 +55,7 @@ resource "aws_codepipeline" "terraform_without_approval" {
           output_artifacts = []
           version          = "1"
           configuration = {
-            ProjectName = each.value.ProjectName
+            ProjectName = action.value.ProjectName
           }
         }
       }

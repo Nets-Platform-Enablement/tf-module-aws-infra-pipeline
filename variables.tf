@@ -21,6 +21,7 @@ variable "tf_state_dynamodb_arn" {
 variable "aws_region" {
   description = "AWS region to deploy resources to"
   default     = "eu-central-1"
+  type        = string
   sensitive   = false
 }
 
