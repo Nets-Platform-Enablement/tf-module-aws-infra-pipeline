@@ -46,7 +46,7 @@ resource "aws_codepipeline" "terraform_without_approval" {
       dynamic "action" {
         for_each = var.enable_checkov ? [local.checks.tflint, local.checks.checkov] : [local.checks.tflint]
         content {
-          run_order        = action.key
+          run_order        = action.key+1
           name             = action.value.name
           category         = "Build"
           owner            = "AWS"
