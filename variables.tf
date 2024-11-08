@@ -31,6 +31,20 @@ variable "require_manual_approval" {
   sensitive   = false
 }
 
+variable "enable_checkov" {
+  type        = bool
+  description = "If TRUE, pipeline will run checkov against codebase"
+  default     = false
+  sensitive   = false
+}
+
+variable "require_checkov_pass" {
+  type        = bool
+  description = "If TRUE, failing checkov will fail the build"
+  default     = false
+  sensitive   = false
+}
+
 variable "branch_name" {
   type        = string
   description = "Name of the branch"
