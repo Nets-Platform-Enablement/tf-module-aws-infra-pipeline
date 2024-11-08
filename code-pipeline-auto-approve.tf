@@ -6,7 +6,7 @@ locals {
     }
     "checkov" = var.enable_checkov ? {
       name = "checkov"
-      ProjectName = aws_codebuild_project.checkov[0].name
+      ProjectName = aws_codebuild_project.checkov.name
     } : null
   }
 }

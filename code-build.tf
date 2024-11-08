@@ -44,7 +44,6 @@ resource "aws_codebuild_project" "tflint" {
 }
 
 resource "aws_codebuild_project" "checkov" {
-  count = var.enable_checkov ? 1 : 0
   name            = "${local.name}-checkov"
   description     = "Managed using Terraform"
   service_role    = aws_iam_role.codebuild.arn
