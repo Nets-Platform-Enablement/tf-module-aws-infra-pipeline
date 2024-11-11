@@ -123,13 +123,15 @@ resource "aws_iam_role" "codebuild" {
       ]
     }
   )
-  # Hard limit of 10 Managed policies
-  managed_policy_arns = [
+}
+
+resource "aws_iam_role_policy_attachments_exclusive" "codebuild" {
+  role_name   = aws_iam_role.codebuild.name
+  policy_arns = [
     for n in keys(data.aws_iam_policy.managed_default) : data.aws_iam_policy.managed_default[n].arn
   ]
 }
 
-# Attach overflow 
 resource "aws_iam_role_policy" "aws_managed" {
   for_each = tomap(data.aws_iam_policy.managed)
   name = "CodebuildRolePolicy-${each.key}"
