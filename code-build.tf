@@ -28,6 +28,11 @@ resource "aws_codebuild_project" "tflint" {
     compute_type = "BUILD_GENERAL1_SMALL"
     image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
+
+    environment_variable {
+      name = "TFLINT_VERSION"
+      value = var.tflint_version
+    }
   }
 
   source {
@@ -37,6 +42,7 @@ resource "aws_codebuild_project" "tflint" {
       {
         #TF_SOURCE = "${aws_s3_bucket.packages.bucket_regional_domain_name}/${local.packages.terraform.target}",
         TF_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}",
+        TFLINT_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}",
         DIRECTORY  = var.directory,
         BACKENDFILE = var.tfbackend_file,
         

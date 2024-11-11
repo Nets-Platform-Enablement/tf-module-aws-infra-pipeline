@@ -66,6 +66,12 @@ variable "terraform_version" {
   default     = "1.9.3"
 }
 
+variable "tflint_version" {
+  description = "The version of tflint to use"
+  type        = string
+  default     = "0.54.0"
+}
+
 variable "tfbackend_file" {
   type        = string
   description = "File to provide terraform the backend config with 'terraform init -backend-config {tfbackend_file}'"
