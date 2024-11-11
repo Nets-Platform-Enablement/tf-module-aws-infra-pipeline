@@ -39,9 +39,13 @@ locals {
       target = "terraform-${var.terraform_version}.zip"
       source = "https://releases.hashicorp.com/terraform/${var.terraform_version}/terraform_${var.terraform_version}_linux_amd64.zip"
     }
-    tflint = {
+    tflint-installer = {
       target = "tflint-installer.sh"
       source = "https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh"
+    }
+    tflint = {
+      target = "tflint-${var.tflint_version}.zip"
+      source = "https://github.com/terraform-linters/tflint/releases/download/v${var.tflint_version}/tflint_linux_amd64.zip"
     }
   }
 }
