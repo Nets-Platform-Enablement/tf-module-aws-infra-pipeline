@@ -31,7 +31,7 @@ resource "aws_codebuild_project" "tflint" {
 
     environment_variable {
       name = "TFLINT_VERSION"
-      value = var.tflint_version
+      value = "v${var.tflint_version}"
     }
   }
 
@@ -42,7 +42,7 @@ resource "aws_codebuild_project" "tflint" {
       {
         #TF_SOURCE = "${aws_s3_bucket.packages.bucket_regional_domain_name}/${local.packages.terraform.target}",
         TF_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}",
-        TFLINT_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint-installer.target}",
+        TFLINT_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}",
         DIRECTORY  = var.directory,
         BACKENDFILE = var.tfbackend_file,
       }
