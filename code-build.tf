@@ -35,7 +35,8 @@ resource "aws_codebuild_project" "tflint" {
     buildspec = templatefile(
       "${path.module}/files/buildspec_tflint.yml.tftpl",
       {
-        TF_SOURCE = "${aws_s3_bucket.packages.bucket_regional_domain_name}/${local.packages.terraform.target}",
+        #TF_SOURCE = "${aws_s3_bucket.packages.bucket_regional_domain_name}/${local.packages.terraform.target}",
+        TF_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}",
         DIRECTORY  = var.directory,
         BACKENDFILE = var.tfbackend_file,
         
