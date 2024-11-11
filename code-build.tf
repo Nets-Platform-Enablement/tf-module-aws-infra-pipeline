@@ -31,7 +31,7 @@ resource "aws_codebuild_project" "tflint" {
 
     environment_variable {
       name = "TFLINT_VERSION"
-      value = "v${var.tflint_version}"
+      value = tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
     }
   }
 

@@ -72,6 +72,12 @@ variable "tflint_version" {
   default     = "0.54.0"
 }
 
+variable "checkov_version" {
+  description = "The version of checkov to use"
+  type        = string
+  default     = "latest"
+}
+
 variable "tfbackend_file" {
   type        = string
   description = "File to provide terraform the backend config with 'terraform init -backend-config {tfbackend_file}'"
