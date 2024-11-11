@@ -63,7 +63,7 @@ variable "variables_file" {
 variable "terraform_version" {
   description = "The version of Terraform to use"
   type        = string
-  default     = ""
+  default     = "1.9.3"
 }
 
 variable "tfbackend_file" {

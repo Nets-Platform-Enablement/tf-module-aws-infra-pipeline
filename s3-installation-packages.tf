@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "packages" {
-  bucket        = lower("${local.name}-packages-${var.environment}")
+  bucket        = lower("${local.name}-terraform-packages-${var.environment}")
   tags          = local.tags
   force_destroy = true
 }
@@ -9,12 +9,6 @@ resource "aws_s3_bucket_ownership_controls" "packages" {
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
-}
-
-resource "aws_s3_bucket_acl" "packages" {
-  bucket     = aws_s3_bucket.packages.bucket
-  acl        = "private"
-  depends_on = [aws_s3_bucket_ownership_controls.owner]
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "packages" {
@@ -52,17 +46,17 @@ resource "null_resource" "download_package" {
 	
   provisioner "local-exec" {
     command = <<EOF
-    curl -qL -o /tmp/${each.value.target} ${each.value.source}
+    curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}
     EOF
   }
 
   triggers = {
-    terget = each.value.target
+    target = each.value.target
     source = each.value.source
   }
 } 
 
-resource "aws_s3_bucket_object" "packages" {
+resource "aws_s3_object" "packages" {
   for_each  = local.packages
   bucket    = aws_s3_bucket.packages.bucket
   key       = each.value.target
