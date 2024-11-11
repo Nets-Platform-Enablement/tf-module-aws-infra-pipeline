@@ -27,6 +27,8 @@ module "tf_infra_pipeline" {
   branch_name           = "staging"
   environment           = "preprod"
   require_manual_approval = true
+  require_checkov_pass  = true
+  enable_checkov        = true
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
   codebuild_image_id    = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
@@ -76,6 +78,8 @@ data "aws_dynamodb_table" "tf_state" {
 | success_notifications | Whether or not you want notifications on succeeded builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | directory | directory for terraform hcl | string | "" | use "<folder>" if your code is in sub folder |
 | extra_build_artifacts | filenames to be included for codepipeline apply step | set(string) | ([""]) |
+| enable_checkov | If checkov should be ran | boolean | false | Without `require_checkov_pass = true`, this will only log the findings | 
+| require_checkov_pass | Should failed checkov check prevent the changes from being applied | boolean | false | Requires `enable_checkov = true` to be effective | 
 ## Notes
 
 - After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.
@@ -89,6 +93,11 @@ data "aws_dynamodb_table" "tf_state" {
 - If the pipeline is trying to make changes to _itself_, things most likely will break. In such case, perform `terraform apply` manually.
 
 ## Releases
+
+### v.2.2.x Optional Checkov checks
+- Checkov checks can be enabled/disabled and be done with soft- or hard fail mode
+  - New settings: `enable_checkov` and `require_checkov_pass` to stop the pipeline on checkov errors
+- Deprecation fix for aws_iam_role.managed_policy_arns
 
 ### v.2.1.0 Customizable build image
 - New setting `codebuild_image_id`, by default "aws/codebuild/standard:7.0", more options at [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html)

@@ -1,3 +1,15 @@
+locals {
+  checks = {
+    "tflint" = {
+      name = "tflint"
+      ProjectName = aws_codebuild_project.tflint.name
+    }
+    "checkov" = var.enable_checkov ? {
+      name = "checkov"
+      ProjectName = aws_codebuild_project.checkov.name
+    } : null
+  }
+}
 
 resource "aws_codepipeline" "terraform_without_approval" {
   count    = var.require_manual_approval ? 0 : 1
@@ -28,22 +40,27 @@ resource "aws_codepipeline" "terraform_without_approval" {
       }
     }
   }
+
   stage {
-    name = "Terraform-Project-Testing"
-    action {
-      run_order        = 1
-      name             = "tflint-linting-terraform"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      input_artifacts  = ["CodeWorkspace"]
-      output_artifacts = []
-      version          = "1"
-      configuration = {
-        ProjectName = aws_codebuild_project.tflint.name
+      name = "Terraform-Project-Testing"
+      dynamic "action" {
+        for_each = var.enable_checkov ? [local.checks.tflint, local.checks.checkov] : [local.checks.tflint]
+        content {
+          run_order        = action.key+1
+          name             = action.value.name
+          category         = "Build"
+          owner            = "AWS"
+          provider         = "CodeBuild"
+          input_artifacts  = ["CodeWorkspace"]
+          output_artifacts = []
+          version          = "1"
+          configuration = {
+            ProjectName = action.value.ProjectName
+          }
+        }
       }
-    }
   }
+    
 
   stage {
     name = "Deploy"

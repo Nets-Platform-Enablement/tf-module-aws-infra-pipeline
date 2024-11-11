@@ -87,6 +87,7 @@ resource "aws_iam_role_policy" "codepipeline" {
           ],
           "Resource" : [
             aws_codebuild_project.tflint.arn,
+            aws_codebuild_project.checkov.arn,
             aws_codebuild_project.tf_plan.arn,
             aws_codebuild_project.tf_apply.arn
           ]

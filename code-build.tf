@@ -43,6 +43,33 @@ resource "aws_codebuild_project" "tflint" {
   }
 }
 
+resource "aws_codebuild_project" "checkov" {
+  name            = "${local.name}-checkov"
+  description     = "Managed using Terraform"
+  service_role    = aws_iam_role.codebuild.arn
+  encryption_key  = aws_kms_key.codebuild.arn
+  tags            = local.tags
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+  environment {
+    compute_type = "BUILD_GENERAL1_SMALL"
+    image        = "aws/codebuild/standard:7.0"
+    type         = "LINUX_CONTAINER"
+  }
+  source {
+    type = "CODEPIPELINE"
+    buildspec = templatefile(
+      "${path.module}/files/buildspec_checkov.yml.tftpl",
+      {
+        TF_VERSION  = local.terraform_version,
+        SOFTFAIL    = !var.require_checkov_pass,
+        DIRECTORY   = var.directory
+      }
+    )
+  }
+}
+
 #Do show and plan for dry run Terraform
 resource "aws_codebuild_project" "tf_plan" {
   name            = "${local.name}-tf-plan"

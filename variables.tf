@@ -21,6 +21,7 @@ variable "tf_state_dynamodb_arn" {
 variable "aws_region" {
   description = "AWS region to deploy resources to"
   default     = "eu-central-1"
+  type        = string
   sensitive   = false
 }
 
@@ -28,6 +29,20 @@ variable "require_manual_approval" {
   type        = bool
   description = "Whether or not a manual approval of changes is required before applying changes"
   default     = true
+  sensitive   = false
+}
+
+variable "enable_checkov" {
+  type        = bool
+  description = "If TRUE, pipeline will run checkov against codebase"
+  default     = false
+  sensitive   = false
+}
+
+variable "require_checkov_pass" {
+  type        = bool
+  description = "If TRUE, failing checkov will fail the build"
+  default     = false
   sensitive   = false
 }
 
