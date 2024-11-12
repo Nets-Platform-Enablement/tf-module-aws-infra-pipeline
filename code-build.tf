@@ -31,7 +31,7 @@ resource "aws_codebuild_project" "install_tf" {
 
     environment_variable {
       name = "TFLINT_VERSION"
-      value = tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
+      value = var.tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
     }
   }
 
@@ -66,7 +66,7 @@ resource "aws_codebuild_project" "tflint" {
 
     environment_variable {
       name = "TFLINT_VERSION"
-      value = tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
+      value = var.tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
     }
   }
 
