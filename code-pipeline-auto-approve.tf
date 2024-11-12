@@ -1,5 +1,9 @@
 locals {
   checks = {
+    "install" = {
+      name = "install"
+      ProjectName = aws_codebuild_project.install_tf.name
+    }
     "tflint" = {
       name = "tflint"
       ProjectName = aws_codebuild_project.tflint.name
