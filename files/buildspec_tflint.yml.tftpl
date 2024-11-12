@@ -2,6 +2,16 @@ version: 0.2
 
 phases:
 
+  install:
+    commands:
+      - cd /usr/bin
+      - aws s3 cp s3://${TF_SOURCE} terraform.zip
+      - unzip -o terraform.zip
+      - aws s3 cp s3://${TFLINT_SOURCE} tflint.zip
+      - unzip -o tflint.zip -d /tmp/tflint
+      - sudo mkdir -p /usr/local/bin
+      - sudo install -c -v /tmp/tflint/tflint /usr/local/bin
+
   build:
     commands:   
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
@@ -12,5 +22,7 @@ phases:
 
   post_build:
     commands:
+      - rm /usr/bin/terraform.zip
+      - rm /usr/bin/tflint.zip
       - echo "terraform validate completed on `date`"
       - echo "tflint completed on `date`"

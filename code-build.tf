@@ -14,41 +14,6 @@ resource "aws_kms_alias" "codebuild" {
 }
 
 #Validate terraform
-resource "aws_codebuild_project" "install_tf" {
-  name            = "${local.name}-install-tf"
-  description     = "Managed using Terraform"
-  service_role    = aws_iam_role.codebuild.arn
-  encryption_key  = aws_kms_key.codebuild.arn
-  tags            = local.tags
-  artifacts {
-    type = "CODEPIPELINE"
-  }
-
-  environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
-    image        = var.codebuild_image_id
-    type         = "LINUX_CONTAINER"
-
-    environment_variable {
-      name = "TFLINT_VERSION"
-      value = var.tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
-    }
-  }
-
-  source {
-    type = "CODEPIPELINE"
-    buildspec = templatefile(
-      "${path.module}/files/buildspec_install_tf.yml.tftpl",
-      {
-        TF_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}",
-        TFLINT_SOURCE = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}",
-        DIRECTORY  = var.directory,
-        BACKENDFILE = var.tfbackend_file,
-      }
-    )
-  }
-}
-#Validate terraform
 resource "aws_codebuild_project" "tflint" {
   name            = "${local.name}-tflint"
   description     = "Managed using Terraform"
