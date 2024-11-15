@@ -40,7 +40,7 @@ locals {
     terraform: "https://api.github.com/repos/hashicorp/terraform/releases/latest"
   }
 }
-# Query for the 'latest' version of tflint
+# Query for the 'latest' version of terraform/tflint
 data "http" "latest_release" {
   for_each = local.latest_version_urls
 
@@ -59,6 +59,7 @@ data "http" "latest_release" {
 }
 
 locals {
+  # GitHub returns the version numbers with prefixed "v", terraform package URL does not have it, tflint has
   tflint_latest = jsondecode(data.http.latest_release["tflint"].response_body).name
   terraform_latest = jsondecode(data.http.latest_release["terraform"].response_body).name
   # var.tflint_version = "latest" -> "v0.54.0"
@@ -71,10 +72,6 @@ locals {
     terraform = {
       target = "terraform-${local.terraform_version}.zip"
       source = "https://releases.hashicorp.com/terraform/${local.terraform_version}/terraform_${local.terraform_version}_linux_amd64.zip"
-    }
-    tflint-installer = {
-      target = "tflint-installer.sh"
-      source = "https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh"
     }
     tflint = {
       target = "tflint-${local.tflint_version}.zip"
@@ -93,7 +90,7 @@ resource "null_resource" "download_package" {
     EOF
   }
 
-  triggers = {
+  triggers = { # Re-download package if source or version number has changed
     target = each.value.target
     source = each.value.source
   }
