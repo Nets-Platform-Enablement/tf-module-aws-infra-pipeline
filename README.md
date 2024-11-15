@@ -22,13 +22,16 @@ data "aws_dynamodb_table" "tf_state" {
 - Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.1.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.2.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
   require_manual_approval = true
-  require_checkov_pass  = true
   enable_checkov        = true
+  require_checkov_pass  = true
+  terraform_version     = "1.9.8"
+  tflint_version        = "0.53.0"
+  checkov_version       = "3.2.281"
   tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
   variables_file        = "environment/prod.tfvars"
   codebuild_image_id    = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
@@ -68,7 +71,9 @@ data "aws_dynamodb_table" "tf_state" {
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
 | tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
-| terraform_version | The version of Terraform to use | string | "1.9.3" | |
+| terraform_version | The version of Terraform to use | string | "latest" | Either semantic version number or "latest" |
+| tflint_version | The version of tflint to use | string | "latest" | Either semantic version number or "latest" |
+| checkov_version | The version of checkov to use | string | "latest" | Either semantic version number or "latest" |
 | codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
@@ -94,10 +99,13 @@ data "aws_dynamodb_table" "tf_state" {
 
 ## Releases
 
-### v.2.2.x Optional Checkov checks
+### v.2.2.0 Optional Checkov checks
 - Checkov checks can be enabled/disabled and be done with soft- or hard fail mode
   - New settings: `enable_checkov` and `require_checkov_pass` to stop the pipeline on checkov errors
-- Deprecation fix for aws_iam_role.managed_policy_arns
+- terraform/tflint packages are stored in S3 bucket
+- Possibility to define version of tflint and checkov (default: 'latest')
+- fix: Deprecation fix for aws_iam_role.managed_policy_arns
+
 
 ### v.2.1.0 Customizable build image
 - New setting `codebuild_image_id`, by default "aws/codebuild/standard:7.0", more options at [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html)
