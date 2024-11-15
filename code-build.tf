@@ -33,11 +33,6 @@ resource "aws_codebuild_project" "tflint" {
     compute_type = "BUILD_GENERAL1_SMALL"
     image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
-
-    environment_variable {
-      name = "TFLINT_VERSION"
-      value = var.tflint_version == "latest" ? "latest" : "v${var.tflint_version}"
-    }
   }
 
   source {
@@ -75,7 +70,8 @@ resource "aws_codebuild_project" "checkov" {
       "${path.module}/files/buildspec_checkov.yml.tftpl",
       {
         TF_SOURCE       = local.terraform_package,
-        CHECKOV_VERSION = var.checkov_version,
+        CHECKOV_VERSION = var.checkov_version
+        LATEST_CHECKOV  = var.checkov_version == "latest"
         SOFTFAIL        = !var.require_checkov_pass, # Notice the "!"
         DIRECTORY       = var.directory
       }

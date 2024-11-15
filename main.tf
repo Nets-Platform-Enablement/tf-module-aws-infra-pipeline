@@ -20,7 +20,6 @@ locals {
   )
 
   tfvars            = var.variables_file == "" ? "environments/${var.environment}.tfvars" : var.variables_file
-  terraform_version = var.terraform_version
 }
 
 data "aws_caller_identity" "current" {}
