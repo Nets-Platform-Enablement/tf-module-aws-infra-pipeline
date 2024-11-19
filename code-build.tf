@@ -20,7 +20,7 @@ resource "aws_kms_alias" "codebuild" {
 
 # CloudWatch logs
 resource "aws_cloudwatch_log_group" "codebuild" {
-  name = local.name
+  name = "codebuild/${local.name}"
   tags = local.tags
   retention_in_days = var.logs_retention_time
 }
@@ -77,6 +77,14 @@ resource "aws_codebuild_project" "checkov" {
     image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
   }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild.name
+      stream_name = "checkov"
+    }
+  }
+
   source {
     type = "CODEPIPELINE"
     buildspec = templatefile(
@@ -101,6 +109,13 @@ resource "aws_codebuild_project" "tf_plan" {
   tags            = local.tags
   artifacts {
     type = "CODEPIPELINE"
+  }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild.name
+      stream_name = "terraform-plan"
+    }
   }
 
   environment {
@@ -145,6 +160,13 @@ resource "aws_codebuild_project" "tf_apply" {
     environment_variable {
       name  = "VAR_FILE"
       value = local.tfvars
+    }
+  }
+
+  logs_config {
+    cloudwatch_logs {
+      group_name  = aws_cloudwatch_log_group.codebuild.name
+      stream_name = "terraform-apply"
     }
   }
 
