@@ -83,7 +83,7 @@ resource "aws_codepipeline" "terraform" {
       configuration = {
         NotificationArn    = module.sns_topic.topic_arn
         CustomData         = "This will deploy following ${local.name} IAC code changes into the ${var.environment} AWS environment"
-        ExternalEntityLink = "https://${var.aws_region}.console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#logsV2:log-groups/log-group/${aws_cloudwatch_log_group.codebuild.name}/${aws_codebuild_project.tf_plan.name}"
+        ExternalEntityLink = "https://${var.aws_region}.console.aws.amazon.com/cloudwatch/home?region=${var.aws_region}#logsV2:log-groups/log-group/codebuild$252F${local.name}$3FlogStreamNameFilter$3Dterraform-plan"
       }
     }
   }

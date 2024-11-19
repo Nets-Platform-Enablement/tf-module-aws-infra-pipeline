@@ -123,7 +123,7 @@ variable "success_notifications" {
 variable "logs_retention_time" {
   type = number
   default = 30
-  description = "Number of days to keep the logs, possibme values 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365 and 0 (never expire)"
+  description = "Number of days to keep the logs, possible values 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365 and 0 (never expire)"
   sensitive = false
 }
 
