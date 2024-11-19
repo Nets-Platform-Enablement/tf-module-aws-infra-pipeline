@@ -39,6 +39,7 @@ module "tf_infra_pipeline" {
   emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
   failure_notifications = "ENABLED"
   success_notifications = "ENABLED"
+  logs_retention_time   = 30
   managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
   role_policy           = {
     Statement = [
@@ -85,6 +86,7 @@ data "aws_dynamodb_table" "tf_state" {
 | extra_build_artifacts | filenames to be included for codepipeline apply step | set(string) | ([""]) |
 | enable_checkov | If checkov should be ran | boolean | false | Without `require_checkov_pass = true`, this will only log the findings | 
 | require_checkov_pass | Should failed checkov check prevent the changes from being applied | boolean | false | Requires `enable_checkov = true` to be effective | 
+| logs_retention_time | Time to retain the logs in days, allowed values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365 and 0 | integer | 30 | 0 = never expire | 
 ## Notes
 
 - After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.
@@ -105,6 +107,8 @@ data "aws_dynamodb_table" "tf_state" {
 - terraform/tflint packages are stored in S3 bucket
 - Possibility to define version of tflint and checkov (default: 'latest')
 - fix: Deprecation fix for aws_iam_role.managed_policy_arns
+- fix: CodeBuild project log to a single CloudWatch Group `codebuild/{name}`
+  - New setting `logs_retention_time`
 
 
 ### v.2.1.0 Customizable build image
