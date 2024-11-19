@@ -1,4 +1,9 @@
 # CodeBuild
+locals {
+  terraform_package = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}"
+  tflint_package = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}"
+}
+
 
 # Key for CodeBuild projects
 resource "aws_kms_key" "codebuild" {
@@ -35,9 +40,10 @@ resource "aws_codebuild_project" "tflint" {
     buildspec = templatefile(
       "${path.module}/files/buildspec_tflint.yml.tftpl",
       {
-        TF_VERSION = local.terraform_version,
-        DIRECTORY  = var.directory,
-        BACKENDFILE = var.tfbackend_file
+        TF_SOURCE     = local.terraform_package,
+        TFLINT_SOURCE = local.tflint_package,
+        DIRECTORY     = var.directory,
+        BACKENDFILE   = var.tfbackend_file,
       }
     )
   }
@@ -62,9 +68,11 @@ resource "aws_codebuild_project" "checkov" {
     buildspec = templatefile(
       "${path.module}/files/buildspec_checkov.yml.tftpl",
       {
-        TF_VERSION  = local.terraform_version,
-        SOFTFAIL    = !var.require_checkov_pass,
-        DIRECTORY   = var.directory
+        TF_SOURCE       = local.terraform_package,
+        CHECKOV_VERSION = var.checkov_version
+        LATEST_CHECKOV  = var.checkov_version == "latest"
+        SOFTFAIL        = !var.require_checkov_pass, # Notice the "!"
+        DIRECTORY       = var.directory
       }
     )
   }
@@ -96,7 +104,7 @@ resource "aws_codebuild_project" "tf_plan" {
     buildspec = templatefile(
       "${path.module}/files/buildspec_tf_plan.yml.tftpl",
       {
-        TF_VERSION  = local.terraform_version,
+        TF_SOURCE   = local.terraform_package,
         DIRECTORY   = var.directory,
         EXTRA_FILES = var.extra_build_artifacts,
         BACKENDFILE = var.tfbackend_file
@@ -131,8 +139,8 @@ resource "aws_codebuild_project" "tf_apply" {
     buildspec = templatefile(
       "${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}",
       {
-        TF_VERSION = local.terraform_version,
-        DIRECTORY  = var.directory,
+        TF_SOURCE   = local.terraform_package,
+        DIRECTORY   = var.directory,
         BACKENDFILE = var.tfbackend_file
       }
     )

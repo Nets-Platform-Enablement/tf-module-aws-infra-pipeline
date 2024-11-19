@@ -63,7 +63,19 @@ variable "variables_file" {
 variable "terraform_version" {
   description = "The version of Terraform to use"
   type        = string
-  default     = ""
+  default     = "latest"
+}
+
+variable "tflint_version" {
+  description = "The version of tflint to use, either semantic version number or 'latest'"
+  type        = string
+  default     = "latest"
+}
+
+variable "checkov_version" {
+  description = "The version of checkov to use"
+  type        = string
+  default     = "latest"
 }
 
 variable "tfbackend_file" {

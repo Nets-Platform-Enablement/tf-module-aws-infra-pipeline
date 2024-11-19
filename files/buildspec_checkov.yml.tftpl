@@ -5,9 +5,9 @@ phases:
        python: latest
     commands:
       - cd /usr/bin
-      - "curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+      - aws s3 cp s3://${TF_SOURCE} terraform.zip
       - unzip -o terraform.zip
-      - pip3 install checkov
+      - pip3 install checkov%{ if !LATEST_CHECKOV }==${CHECKOV_VERSION}%{ endif }
   build:
     commands:   
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
@@ -19,4 +19,5 @@ phases:
       %{ endif }
   post_build:
     commands:
+      - rm /usr/bin/terraform.zip
       - echo "Checkov test is completed on `date`"

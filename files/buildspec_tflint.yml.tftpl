@@ -5,9 +5,12 @@ phases:
   install:
     commands:
       - cd /usr/bin
-      - "curl -s -qL -o terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip"
+      - aws s3 cp s3://${TF_SOURCE} terraform.zip
       - unzip -o terraform.zip
-      - curl --retry 5 -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      - aws s3 cp s3://${TFLINT_SOURCE} tflint.zip
+      - unzip -o tflint.zip -d /tmp/tflint
+      - sudo mkdir -p /usr/local/bin
+      - sudo install -c -v /tmp/tflint/tflint /usr/local/bin
 
   build:
     commands:   
@@ -19,5 +22,7 @@ phases:
 
   post_build:
     commands:
+      - rm /usr/bin/terraform.zip
+      - rm /usr/bin/tflint.zip
       - echo "terraform validate completed on `date`"
       - echo "tflint completed on `date`"
