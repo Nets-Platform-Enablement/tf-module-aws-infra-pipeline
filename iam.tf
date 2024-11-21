@@ -19,12 +19,19 @@ resource "aws_iam_role" "codepipeline" {
       ]
     }
   )
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy" "codepipeline" {
   role = aws_iam_role.codepipeline.id
   name = "CodepipelineRolePolicy-${local.name}"
 
+  lifecycle {
+    create_before_destroy = true
+  }
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
@@ -124,6 +131,9 @@ resource "aws_iam_role" "codebuild" {
       ]
     }
   )
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy_attachments_exclusive" "codebuild" {
@@ -277,4 +287,8 @@ resource "aws_iam_role_policy" "codebuild_additionals" {
   policy = jsonencode(
     var.role_policy
   )
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

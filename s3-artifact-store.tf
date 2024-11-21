@@ -2,6 +2,10 @@ resource "aws_s3_bucket" "codepipeline_artifacts_store" {
   bucket        = lower("${local.name}-artifact-store-${var.environment}")
   tags          = local.tags
   force_destroy = true
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_ownership_controls" "owner" {
@@ -110,4 +114,8 @@ resource "aws_kms_key" "codeartifact_key" {
 resource "aws_kms_alias" "codeartifact_key" {
   name          = "alias/${local.name}_codeartifact_key"
   target_key_id = aws_kms_key.codeartifact_key.key_id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

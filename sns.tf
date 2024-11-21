@@ -20,6 +20,10 @@ resource "aws_kms_key" "sns_topic_encryption" {
 resource "aws_kms_alias" "sns_topic_s3_encryption" {
   name          = "alias/${local.name}_sns_topic_encrypt"
   target_key_id = aws_kms_key.sns_topic_encryption.key_id
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 data "aws_iam_policy_document" "key-policy" {
   statement {
@@ -87,6 +91,10 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
     }
   })
   tags = local.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudwatch_event_target" "sns_failed_builds" {
@@ -134,6 +142,10 @@ resource "aws_cloudwatch_event_rule" "succes_builds" {
     }
   })
   tags = local.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudwatch_event_target" "sns_success_builds" {

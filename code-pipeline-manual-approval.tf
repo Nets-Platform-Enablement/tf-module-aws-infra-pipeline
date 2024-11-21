@@ -10,6 +10,11 @@ resource "aws_codepipeline" "terraform" {
   name     = "${local.name}-${var.environment}-terraform-apply"
   role_arn = aws_iam_role.codepipeline.arn
   tags     = local.tags
+
+  lifecycle {
+    ignore_changes = [ name ]
+  }
+
   artifact_store {
     location = aws_s3_bucket.codepipeline_artifacts_store.bucket
     type     = "S3"
