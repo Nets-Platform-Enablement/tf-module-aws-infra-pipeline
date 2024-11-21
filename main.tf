@@ -13,11 +13,14 @@ locals {
     Module = "tf-module-aws-infra-pipeline"
   })
 
-  # Nets-Platform-Enamblement/Project-Name -> Project-Name
-  name = element(
-    split("/", var.github_repository_id),
-    length(split("/", var.github_repository_id)) - 1
-  )
+  # If the 'name' is given, use it. Otherwise take the 'name' from github repository name
+  name = coalesce([
+    var.name,
+    element(
+      split("/", var.github_repository_id),
+      length(split("/", var.github_repository_id)) - 1
+    )
+  ])
 
   tfvars            = var.variables_file == "" ? "environments/${var.environment}.tfvars" : var.variables_file
 }
