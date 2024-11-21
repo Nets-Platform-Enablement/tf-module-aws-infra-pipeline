@@ -25,6 +25,18 @@ variable "aws_region" {
   sensitive   = false
 }
 
+variable "name" {
+  description = "Name of the pipeline, used naming resources it has"
+  default     = ""
+  type        = string
+  sensitive   = false
+  validation {
+    # regex(...) fails if it cannot find a match
+    condition     = can(regex("^[0-9A-Za-z_-]+$", var.name))
+    error_message = "For the name value only a-Z, 0-9, dash and underscore are allowed."
+  }
+}
+
 variable "require_manual_approval" {
   type        = bool
   description = "Whether or not a manual approval of changes is required before applying changes"

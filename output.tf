@@ -1,3 +1,8 @@
+output "name" {
+  description = "Name of the pipeline"
+  value       = local.name
+}
+
 output "sns_topic_arn" {
   description = "ARN of the SNS topic used by Infra Pipeline"
   value       = module.sns_topic.topic_arn

@@ -23,6 +23,7 @@ data "aws_dynamodb_table" "tf_state" {
 ```
 module "tf_infra_pipeline" {
   source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.2.0"
+  name                  = "example-pipeline"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   branch_name           = "staging"
   environment           = "preprod"
@@ -64,6 +65,7 @@ data "aws_dynamodb_table" "tf_state" {
 | Name | Description | Type | Default | Notes |
 |------|-------------|------|---------|-------|
 | environment | Type of environment deploying to [test,dev,prod etc.] | string |  | Used in S3-bucket name so there might be collision |
+| name | Optional name for the pipeline, if not given, name is derived from the github repository name | string | "" | Alpha-numeric, dash (-) and underscore(_) allowed |
 | github_repository_id | ID of the terraform repository | string |  | `https://github.com/{this-part}.git` |
 | branch_name | Name of the branch to deploy | string | `main` |  |
 | tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state | string |  |  |
