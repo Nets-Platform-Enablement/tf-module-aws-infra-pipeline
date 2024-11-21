@@ -13,16 +13,13 @@ locals {
     Module = "tf-module-aws-infra-pipeline"
   })
 
+  repo_name = element(
+    split("/", var.github_repository_id),
+    length(split("/", var.github_repository_id)) - 1
+  )
   # If the 'name' is given, use it. Otherwise take the 'name' from github repository name
-  name = coalesce([
-    var.name,
-    element(
-      split("/", var.github_repository_id),
-      length(split("/", var.github_repository_id)) - 1
-    )
-  ])
-
-  tfvars            = var.variables_file == "" ? "environments/${var.environment}.tfvars" : var.variables_file
+  name      = coalesce(var.name, local.repo_name)
+  tfvars    = coalesce(var.variables_file, "environments/${var.environment}.tfvars")
 }
 
 data "aws_caller_identity" "current" {}
