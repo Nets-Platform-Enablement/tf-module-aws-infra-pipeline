@@ -1,8 +1,12 @@
 # CodePipeline
 
 resource "aws_codestarconnections_connection" "this" {
-  name          = "aws-github-connection"
+  name          = "github-connection-${local.name}"
   provider_type = "GitHub"
+  tags          = local.tags
+  lifecycle {
+    ignore_changes = [ name ]
+  }
 }
 
 resource "aws_codepipeline" "terraform" {
