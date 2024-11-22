@@ -94,6 +94,7 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name ]
   }
 }
 
@@ -145,6 +146,7 @@ resource "aws_cloudwatch_event_rule" "succes_builds" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name ]
   }
 }
 
