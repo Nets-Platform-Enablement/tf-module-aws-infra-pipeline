@@ -21,6 +21,7 @@ resource "aws_iam_role" "codepipeline" {
   )
 
   lifecycle {
+    ignore_changes = [ name_prefix ]
     create_before_destroy = true
   }
 }
@@ -31,6 +32,7 @@ resource "aws_iam_role_policy" "codepipeline" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name ]
   }
   policy = jsonencode(
     {
@@ -133,6 +135,7 @@ resource "aws_iam_role" "codebuild" {
   )
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name_prefix ]
   }
 }
 
@@ -149,12 +152,18 @@ resource "aws_iam_role_policy" "aws_managed" {
   role = aws_iam_role.codebuild.id
 
   policy = each.value.policy
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy" "codebuild" {
   name = "CodebuildRolePolicy-${local.name}"
   role = aws_iam_role.codebuild.id
-
+  lifecycle {
+    create_before_destroy = true
+  }
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
