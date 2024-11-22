@@ -155,6 +155,7 @@ resource "aws_iam_role_policy" "aws_managed" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name ]
   }
 }
 
@@ -163,6 +164,7 @@ resource "aws_iam_role_policy" "codebuild" {
   role = aws_iam_role.codebuild.id
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name ]
   }
   policy = jsonencode(
     {
@@ -299,5 +301,6 @@ resource "aws_iam_role_policy" "codebuild_additionals" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ name ]
   }
 }

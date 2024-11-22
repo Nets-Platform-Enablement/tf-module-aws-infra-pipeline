@@ -1,7 +1,7 @@
 # CodePipeline
 
 resource "aws_codestarconnections_connection" "this" {
-  name          = "github-connection-${local.name}"
+  name          = substr("${local.name}-github", 0, 32)
   provider_type = "GitHub"
   tags          = local.tags
   lifecycle {
