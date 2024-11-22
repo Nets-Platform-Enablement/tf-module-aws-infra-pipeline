@@ -5,6 +5,7 @@ resource "aws_s3_bucket" "codepipeline_artifacts_store" {
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes = [ bucket ]
   }
 }
 

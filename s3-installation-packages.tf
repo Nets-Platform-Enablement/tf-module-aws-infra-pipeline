@@ -2,6 +2,10 @@ resource "aws_s3_bucket" "packages" {
   bucket        = lower("${local.name}-terraform-packages-${var.environment}")
   tags          = local.tags
   force_destroy = true
+
+  lifecycle {
+    ignore_changes = [ bucket ]
+  }
 }
 
 resource "aws_s3_bucket_ownership_controls" "packages" {
