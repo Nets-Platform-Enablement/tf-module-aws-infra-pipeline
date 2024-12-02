@@ -48,7 +48,8 @@ data "http" "latest_release" {
 
   # Optional request headers
   request_headers = {
-    Accept = "application/json"
+    Accept      = "application/json"
+    User-Agent  = "Terraform"
   }
   lifecycle {
     postcondition {

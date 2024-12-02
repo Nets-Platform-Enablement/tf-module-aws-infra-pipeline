@@ -32,7 +32,7 @@ variable "name" {
   sensitive   = false
   validation {
     # regex(...) fails if it cannot find a match
-    condition     = can(regex("^[0-9A-Za-z_-]+$", var.name))
+    condition     = can(regex("^[0-9A-Za-z_-]{0,12}$", var.name))
     error_message = "For the name value only a-Z, 0-9, dash and underscore are allowed."
   }
 }
