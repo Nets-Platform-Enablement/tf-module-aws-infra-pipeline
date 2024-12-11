@@ -108,7 +108,13 @@ resource "aws_iam_role_policy" "codepipeline" {
         },
         {
           "Effect" : "Allow",
-          "Action" : "codestar-connections:CreateConnection",
+          "Action" : [
+            "codestar-connections:CreateConnection",
+            "codestar-connections:DeleteConnection",
+            "codestar-connections:GetConnection",
+            "codestar-connections:DeleteConnection",
+            "codestar-connections:TagResource",
+          ]
           "Resource" : "arn:aws:codestar-connections:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
         }
       ]
