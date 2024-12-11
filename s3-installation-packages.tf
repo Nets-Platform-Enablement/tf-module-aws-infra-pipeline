@@ -80,27 +80,21 @@ locals {
   }
 }
 
-resource "null_resource" "terraform_version" {
-  provisioner "local-exec" {
-    command = "terraform --version > terraform_version.txt"
-  }
-}
 
-data "local_file" "terraform_version_output" {
-  filename   = "terraform_version.txt"
-  depends_on = [null_resource.terraform_version]
-}
-
+# locals {
+#   is_windows = can(regex("\\\\", coalesce(env("HOMEPATH", ""), env("HOME", ""))))
+# }
 locals {
-  is_windows = contains(data.local_file.terraform_version_output.content, "windows_386")
+  is_windows = can(regex("Windows_NT", env("OS", "")))
 }
+
 
 # Download packages locally
 resource "null_resource" "download_package" {
   for_each = local.packages
 
   provisioner "local-exec" {
-    command = local.is_windows ? "curl -qL -s --retry 3 -o C:\\$env:Temp\\${each.value.target} ${each.value.source}" : "curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}"
+    command = local.is_windows ? "curl -o $env:Temp\\${each.value.target} ${each.value.source}" : "curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}"
   }
 
   triggers = { # Re-download package if source or version number has changed
