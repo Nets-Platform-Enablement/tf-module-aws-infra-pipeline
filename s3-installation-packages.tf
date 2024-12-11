@@ -36,8 +36,8 @@ resource "aws_s3_bucket_versioning" "packages" {
 
 locals {
   latest_version_urls = {
-    tflint: "https://api.github.com/repos/terraform-linters/tflint/releases/latest"
-    terraform: "https://api.github.com/repos/hashicorp/terraform/releases/latest"
+    tflint : "https://api.github.com/repos/terraform-linters/tflint/releases/latest"
+    terraform : "https://api.github.com/repos/hashicorp/terraform/releases/latest"
   }
 }
 # Query for the 'latest' version of terraform/tflint
@@ -60,14 +60,14 @@ data "http" "latest_release" {
 
 locals {
   # GitHub returns the version numbers with prefixed "v", terraform package URL does not have it, tflint has
-  tflint_latest = jsondecode(data.http.latest_release["tflint"].response_body).name
+  tflint_latest    = jsondecode(data.http.latest_release["tflint"].response_body).name
   terraform_latest = jsondecode(data.http.latest_release["terraform"].response_body).name
   # var.tflint_version = "latest" -> "v0.54.0"
   # var.tflint_version = "0.54.0" -> "v0.54.0"
   tflint_version = var.tflint_version == "latest" ? local.tflint_latest : "v${var.tflint_version}"
   # "v1.98.0" -> "1.98.0"
-  terraform_version = var.terraform_version == "latest" ? substr(local.terraform_latest,1,-1) : var.terraform_version
-  
+  terraform_version = var.terraform_version == "latest" ? substr(local.terraform_latest, 1, -1) : var.terraform_version
+
   packages = {
     terraform = {
       target = "terraform-${local.terraform_version}.zip"
@@ -80,14 +80,26 @@ locals {
   }
 }
 
+resource "null_resource" "terraform_version" {
+  provisioner "local-exec" {
+    command = "terraform --version >> terraform_version.txt"
+  }
+}
+
+data "local_file" "terraform_version_output" {
+  filename = "${path.module}/terraform_version.txt"
+}
+
+locals {
+  is_windows = contains(data.local_file.terraform_version_output.content, "windows_386")
+}
+
 # Download packages locally
 resource "null_resource" "download_package" {
   for_each = local.packages
-	
+
   provisioner "local-exec" {
-    command = <<EOF
-    curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}
-    EOF
+    command = local.is_windows ? "curl -qL -s --retry 3 -o C:\\$env:Temp\\${each.value.target} ${each.value.source}" : "curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}"
   }
 
   triggers = { # Re-download package if source or version number has changed
@@ -98,10 +110,14 @@ resource "null_resource" "download_package" {
 
 # upload packages to S3
 resource "aws_s3_object" "packages" {
-  for_each  = local.packages
-  bucket    = aws_s3_bucket.packages.bucket
-  key       = each.value.target
-  source    = "/tmp/${each.value.target}"
+  for_each = local.packages
+  bucket   = aws_s3_bucket.packages.bucket
+  key      = each.value.target
+  source   = local.is_windows ? "${env("Temp")}\\${each.value.target}" : "/tmp/${each.value.target}"
 
-  depends_on = [ null_resource.download_package ]
+  depends_on = [null_resource.download_package]
+
+  lifecycle {
+    ignore_changes = [source]
+  }
 }
