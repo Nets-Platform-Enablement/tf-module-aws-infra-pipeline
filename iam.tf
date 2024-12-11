@@ -289,6 +289,13 @@ resource "aws_iam_role_policy" "codebuild" {
             aws_cloudwatch_event_rule.succes_builds.arn
           ]
         },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "events:ListTagsForResource ",
+          ],
+          "Resource" : ["arn:aws:events:*:${data.aws_caller_identity.current.account_id}:*"]
+        },
       ]
     }
   )
