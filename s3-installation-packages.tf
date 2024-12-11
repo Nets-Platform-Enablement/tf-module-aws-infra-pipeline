@@ -87,7 +87,8 @@ resource "null_resource" "terraform_version" {
 }
 
 data "local_file" "terraform_version_output" {
-  filename = "${path.module}/terraform_version.txt"
+  filename   = "${path.module}/terraform_version.txt"
+  depends_on = [null_resource.terraform_version]
 }
 
 locals {
