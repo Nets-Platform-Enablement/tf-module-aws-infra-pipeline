@@ -82,12 +82,12 @@ locals {
 
 resource "null_resource" "terraform_version" {
   provisioner "local-exec" {
-    command = "terraform --version >> terraform_version.txt"
+    command = "terraform --version > terraform_version.txt"
   }
 }
 
 data "local_file" "terraform_version_output" {
-  filename   = "${path.module}/terraform_version.txt"
+  filename   = "terraform_version.txt"
   depends_on = [null_resource.terraform_version]
 }
 
