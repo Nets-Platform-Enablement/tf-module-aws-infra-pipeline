@@ -5,7 +5,7 @@ phases:
   install:
     commands:
       - cd /usr/bin
-      - aws s3 cp s3://${TF_SOURCE} terraform.zip
+      - aws s3 cp --no-progress s3://${TF_SOURCE} terraform.zip
       - unzip -o terraform.zip
 
   build:

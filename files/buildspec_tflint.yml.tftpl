@@ -5,9 +5,9 @@ phases:
   install:
     commands:
       - cd /usr/bin
-      - aws s3 cp s3://${TF_SOURCE} terraform.zip
+      - aws s3 cp --no-progress s3://${TF_SOURCE} terraform.zip
       - unzip -o terraform.zip
-      - aws s3 cp s3://${TFLINT_SOURCE} tflint.zip
+      - aws s3 cp --no-progress s3://${TFLINT_SOURCE} tflint.zip
       - unzip -o tflint.zip -d /tmp/tflint
       - sudo mkdir -p /usr/local/bin
       - sudo install -c -v /tmp/tflint/tflint /usr/local/bin
