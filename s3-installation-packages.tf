@@ -53,7 +53,7 @@ data "http" "latest_release" {
   # Optional request headers
   request_headers = {
     Accept = "application/json"
-    User-Agent = "terraform/${local.terraform_version}"
+    User-Agent = "terraform"
   }
   lifecycle {
     postcondition {
