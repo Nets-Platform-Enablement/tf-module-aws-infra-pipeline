@@ -31,8 +31,8 @@ variable "name" {
   type        = string
   sensitive   = false
   validation {
-    # regex(...) fails if it cannot find a match
-    condition     = can(regex("^[0-9A-Za-z_-]+$", var.name))
+    # Either the name is empty or it contains only allowed characters
+    condition     = length(var.name) == 0 || can(regex("^[0-9A-Za-z_-]+$", var.name))
     error_message = "For the name value only a-Z, 0-9, dash and underscore are allowed."
   }
 }

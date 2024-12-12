@@ -19,12 +19,21 @@ resource "aws_iam_role" "codepipeline" {
       ]
     }
   )
+
+  lifecycle {
+    ignore_changes = [ name_prefix ]
+    create_before_destroy = true
+  }
 }
 
 resource "aws_iam_role_policy" "codepipeline" {
   role = aws_iam_role.codepipeline.id
   name = "CodepipelineRolePolicy-${local.name}"
 
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [ name ]
+  }
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
@@ -96,6 +105,17 @@ resource "aws_iam_role_policy" "codepipeline" {
           "Effect" : "Allow",
           "Action" : "codestar-connections:UseConnection",
           "Resource" : "${aws_codestarconnections_connection.this.arn}"
+        },
+        {
+          "Effect" : "Allow",
+          "Action" : [
+            "codestar-connections:CreateConnection",
+            "codestar-connections:DeleteConnection",
+            "codestar-connections:GetConnection",
+            "codestar-connections:DeleteConnection",
+            "codestar-connections:TagResource",
+          ]
+          "Resource" : "arn:aws:codestar-connections:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
         }
       ]
     }
@@ -124,6 +144,10 @@ resource "aws_iam_role" "codebuild" {
       ]
     }
   )
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [ name_prefix ]
+  }
 }
 
 resource "aws_iam_role_policy_attachments_exclusive" "codebuild" {
@@ -139,12 +163,20 @@ resource "aws_iam_role_policy" "aws_managed" {
   role = aws_iam_role.codebuild.id
 
   policy = each.value.policy
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [ name ]
+  }
 }
 
 resource "aws_iam_role_policy" "codebuild" {
   name = "CodebuildRolePolicy-${local.name}"
   role = aws_iam_role.codebuild.id
-
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [ name ]
+  }
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
@@ -263,6 +295,27 @@ resource "aws_iam_role_policy" "codebuild" {
             aws_cloudwatch_event_rule.succes_builds.arn
           ]
         },
+        {
+          "Sid" : "AllowEventTagging",
+          "Effect" : "Allow",
+          "Action" : [
+            "events:ListTagsForResource",
+            "events:TagResource",
+          ],
+          "Resource" : [
+            "arn:aws:events:*:${data.aws_caller_identity.current.account_id}:*"
+          ]
+        },
+        {
+          Sid: "CodestarConnectionsManagement"
+          Effect : "Allow",
+          Action : [
+            "codestar-connections:*",
+          ],
+          Resource : [
+            "arn:aws:codestar-connections:*:${data.aws_caller_identity.current.account_id}:*"
+          ]
+        }
       ]
     }
   )
@@ -277,4 +330,9 @@ resource "aws_iam_role_policy" "codebuild_additionals" {
   policy = jsonencode(
     var.role_policy
   )
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes = [ name ]
+  }
 }

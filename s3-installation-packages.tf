@@ -2,6 +2,10 @@ resource "aws_s3_bucket" "packages" {
   bucket        = lower("${local.name}-terraform-packages-${var.environment}")
   tags          = local.tags
   force_destroy = true
+
+  lifecycle {
+    ignore_changes = [ bucket ]
+  }
 }
 
 resource "aws_s3_bucket_ownership_controls" "packages" {
@@ -49,6 +53,11 @@ data "http" "latest_release" {
   # Optional request headers
   request_headers = {
     Accept = "application/json"
+    User-Agent = "terraform"
+  }
+  retry {
+    attempts = 3
+    min_delay_ms = 3000
   }
   lifecycle {
     postcondition {

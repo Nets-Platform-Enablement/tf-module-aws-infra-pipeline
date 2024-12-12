@@ -61,6 +61,10 @@ resource "aws_codebuild_project" "tflint" {
       }
     )
   }
+
+  lifecycle {
+    ignore_changes = [ name ]
+  }
 }
 
 resource "aws_codebuild_project" "checkov" {
@@ -97,6 +101,10 @@ resource "aws_codebuild_project" "checkov" {
         DIRECTORY       = var.directory
       }
     )
+  }
+
+  lifecycle {
+    ignore_changes = [ name ]
   }
 }
 
@@ -140,6 +148,10 @@ resource "aws_codebuild_project" "tf_plan" {
       }
     )
   }
+
+  lifecycle {
+    ignore_changes = [ name ]
+  }
 }
 
 resource "aws_codebuild_project" "tf_apply" {
@@ -180,5 +192,9 @@ resource "aws_codebuild_project" "tf_apply" {
         BACKENDFILE = var.tfbackend_file
       }
     )
+  }
+
+  lifecycle {
+    ignore_changes = [ name ]
   }
 }
