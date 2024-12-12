@@ -296,12 +296,26 @@ resource "aws_iam_role_policy" "codebuild" {
           ]
         },
         {
+          "Sid" : "AllowEventTagging",
           "Effect" : "Allow",
           "Action" : [
-            "events:ListTagsForResource ",
+            "events:ListTagsForResource",
+            "events:TagResource",
           ],
-          "Resource" : ["arn:aws:events:*:${data.aws_caller_identity.current.account_id}:*"]
+          "Resource" : [
+            "arn:aws:events:*:${data.aws_caller_identity.current.account_id}:*"
+          ]
         },
+        {
+          Sid: "CodestarConnectionsManagement"
+          Effect : "Allow",
+          Action : [
+            "codestar-connections:*",
+          ],
+          Resource : [
+            "arn:aws:codestar-connections:*:${data.aws_caller_identity.current.account_id}:*"
+          ]
+        }
       ]
     }
   )
