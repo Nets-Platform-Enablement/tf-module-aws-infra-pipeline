@@ -55,6 +55,10 @@ data "http" "latest_release" {
     Accept = "application/json"
     User-Agent = "terraform"
   }
+  retry {
+    attempts = 3
+    min_delay_ms = 3000
+  }
   lifecycle {
     postcondition {
       condition     = contains([200, 201, 204, 304], self.status_code)
