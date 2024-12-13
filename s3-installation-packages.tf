@@ -78,23 +78,31 @@ locals {
       source = "https://github.com/terraform-linters/tflint/releases/download/${local.tflint_version}/tflint_linux_amd64.zip"
     }
   }
+  detect_os_command = lower(terraform.platform) == "windows" ? "if defined SystemRoot (echo true) else (echo false)" : "[-n \"$SYSTEMROOT\"] && echo true || echo false"
+  temp_path         = local.is_windows ? "C:\\Temp" : "/tmp"
 }
 
+# Detect if the OS is Windows
+data "external" "os_detection" {
+  program = ["sh", "-c", local.detect_os_command]
+}
 
-# locals {
-#   is_windows = can(regex("\\\\", coalesce(env("HOMEPATH", ""), env("HOME", ""))))
-# }
 locals {
-  is_windows = can(regex("Windows_NT", env("OS", "")))
+  detect_os_result = trimspace(data.external.os_detection.result.stdout)
 }
 
+locals {
+  is_windows = substr(lower(terraform.workspace), 0, 7) == "windows" || local.detect_os_result == "true"
+}
 
 # Download packages locally
 resource "null_resource" "download_package" {
   for_each = local.packages
 
   provisioner "local-exec" {
-    command = local.is_windows ? "curl -o $env:Temp\\${each.value.target} ${each.value.source}" : "curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}"
+    command = local.is_windows ? "curl -o ${local.temp_path}\\${each.value.target} ${each.value.source}" : "curl -qL -s --retry 3 -o ${local.temp_path}/${each.value.target} ${each.value.source}"
+
+    interpreter = local.is_windows ? ["powershell", "-Command"] : ["/bin/sh", "-c"]
   }
 
   triggers = { # Re-download package if source or version number has changed
@@ -108,7 +116,7 @@ resource "aws_s3_object" "packages" {
   for_each = local.packages
   bucket   = aws_s3_bucket.packages.bucket
   key      = each.value.target
-  source   = local.is_windows ? "${env("Temp")}\\${each.value.target}" : "/tmp/${each.value.target}"
+  source   = local.is_windows ? "${local.temp_path}\\${each.value.target}" : "${local.temp_path}/${each.value.target}"
 
   depends_on = [null_resource.download_package]
 
