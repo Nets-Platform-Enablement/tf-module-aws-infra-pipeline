@@ -6,7 +6,7 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 - Pipeline _without_ manual approval
 ```
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.1.0"
+  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.2.0"
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
@@ -66,7 +66,7 @@ data "aws_dynamodb_table" "tf_state" {
 | Name | Description | Type | Default | Notes |
 |------|-------------|------|---------|-------|
 | environment | Type of environment deploying to [test,dev,prod etc.] | string |  | Used in S3-bucket name so there might be collision |
-| name | Optional name for the pipeline, if not given, name is derived from the github repository name | string | "" | Alpha-numeric, dash (-) and underscore(_) allowed |
+| name | Optional name for the pipeline, if not given, name is derived from the github repository name | string | "" | Alpha-numeric, dash (-) and underscore(_) allowed. Renaming pipeline does not work, deploy new instance of the module instead |
 | github_repository_id | ID of the terraform repository | string |  | `https://github.com/{this-part}.git` |
 | branch_name | Name of the branch to deploy | string | `main` |  |
 | tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state | string |  |  |
@@ -89,10 +89,12 @@ data "aws_dynamodb_table" "tf_state" {
 | enable_checkov | If checkov should be ran | boolean | false | Without `require_checkov_pass = true`, this will only log the findings | 
 | require_checkov_pass | Should failed checkov check prevent the changes from being applied | boolean | false | Requires `enable_checkov = true` to be effective | 
 | logs_retention_time | Time to retain the logs in days, allowed values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365 and 0 | integer | 30 | 0 = never expire | 
+
 ## Notes
 
+- Pipeline cannot do renaming (or adding `name`) to itself. Instead create a new instance of the module, apply changes and then remove the old instance. Also note the CodeStar connection note below.
 - After initial deployment, the *CodeStar connection* needs to be [manually activated](https://eu-central-1.console.aws.amazon.com/codesuite/settings/connections), also ensure *AWS Connector for GitHub* has access to the repository you're deploying.
-- The CodeBuild -project created by this module will by default get following AWS managed policices:
+- The CodeBuild -project created by this module will by default get following AWS managed policies:
   - IAMFullAccess
   - AWSCodePipeline_FullAccess
   - AWSCodeStarFullAccess
@@ -104,10 +106,13 @@ data "aws_dynamodb_table" "tf_state" {
 ## Releases
 
 ### v.2.2.0 Optional Checkov checks
+- *Breaking change*: This version does not support Windows as running environment.
 - Checkov checks can be enabled/disabled and be done with soft- or hard fail mode
   - New settings: `enable_checkov` and `require_checkov_pass` to stop the pipeline on checkov errors
 - terraform/tflint packages are stored in S3 bucket
 - Possibility to define version of tflint and checkov (default: 'latest')
+- Possibility to give the module a `name`
+- Terraform version requirement lowered to 1.3.0
 - fix: Deprecation fix for aws_iam_role.managed_policy_arns
 - fix: CodeBuild project log to a single CloudWatch Group `codebuild/{name}`
   - New setting `logs_retention_time`
