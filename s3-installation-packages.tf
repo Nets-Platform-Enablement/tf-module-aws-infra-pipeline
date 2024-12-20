@@ -34,12 +34,6 @@ resource "aws_s3_bucket_versioning" "packages" {
 # Installation packages
 ################
 
-locals {
-  latest_version_urls = {
-    tflint : "https://api.github.com/repos/terraform-linters/tflint/releases/latest"
-    terraform : "https://api.github.com/repos/hashicorp/terraform/releases/latest"
-  }
-}
 # Query for the 'latest' version of terraform/tflint
 data "http" "latest_release" {
   for_each = local.latest_version_urls
@@ -59,6 +53,10 @@ data "http" "latest_release" {
 }
 
 locals {
+  latest_version_urls = {
+    tflint : "https://api.github.com/repos/terraform-linters/tflint/releases/latest"
+    terraform : "https://api.github.com/repos/hashicorp/terraform/releases/latest"
+  }
   # GitHub returns the version numbers with prefixed "v", terraform package URL does not have it, tflint has
   tflint_latest    = jsondecode(data.http.latest_release["tflint"].response_body).name
   terraform_latest = jsondecode(data.http.latest_release["terraform"].response_body).name
@@ -80,19 +78,14 @@ locals {
   }
   detect_os_command = lower(terraform.platform) == "windows" ? "if defined SystemRoot (echo true) else (echo false)" : "[-n \"$SYSTEMROOT\"] && echo true || echo false"
   temp_path         = local.is_windows ? "C:\\Temp" : "/tmp"
+
+  detect_os_result = trimspace(data.external.os_detection.result.stdout)
+  is_windows = substr(lower(terraform.workspace), 0, 7) == "windows" || local.detect_os_result == "true"
 }
 
 # Detect if the OS is Windows
 data "external" "os_detection" {
   program = ["sh", "-c", local.detect_os_command]
-}
-
-locals {
-  detect_os_result = trimspace(data.external.os_detection.result.stdout)
-}
-
-locals {
-  is_windows = substr(lower(terraform.workspace), 0, 7) == "windows" || local.detect_os_result == "true"
 }
 
 # Download packages locally
