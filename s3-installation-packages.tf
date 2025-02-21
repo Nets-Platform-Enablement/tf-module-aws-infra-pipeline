@@ -113,5 +113,10 @@ resource "aws_s3_object" "packages" {
   key      = each.value.target
   source   = startswith(pathexpand("~"), "/") ? "/tmp/${each.value.target}" : "${pathexpand("~/AppData/Local/Temp/")}${"/"}${each.value.target}"
 
+  # Add etag to force update when file changes
+  etag = filemd5(
+    startswith(pathexpand("~"), "/") ? "/tmp/${each.value.target}" : "${pathexpand("~/AppData/Local/Temp/")}${"/"}${each.value.target}"
+  )
+
   depends_on = [null_resource.download_package]
 }
