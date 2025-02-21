@@ -35,21 +35,21 @@ resource "aws_s3_bucket_versioning" "packages" {
 ################
 
 locals {
-  latest_version_urls = {
-    tflint: "https://api.github.com/repos/terraform-linters/tflint/releases/latest"
-    terraform: "https://api.github.com/repos/hashicorp/terraform/releases/latest"
+  latest_version_urls = var.terraform_version != "latest" && var.tflint_version != "latest" ? {} : {
+    tflint    = var.tflint_version == "latest" ? "https://api.github.com/repos/terraform-linters/tflint/releases/latest" : null
+    terraform = var.terraform_version == "latest" ? "https://api.github.com/repos/hashicorp/terraform/releases/latest" : null
   }
 }
 # Query for the 'latest' version of terraform/tflint
 data "http" "latest_release" {
-  for_each = local.latest_version_urls
+  for_each = { for k, v in local.latest_version_urls : k => v if v != null }
 
   url = each.value
 
   # Optional request headers
   request_headers = {
-    Accept      = "application/json"
-    User-Agent  = "Terraform"
+    Accept     = "application/json"
+    User-Agent = "Terraform"
   }
   lifecycle {
     postcondition {
@@ -61,22 +61,23 @@ data "http" "latest_release" {
 
 locals {
   # GitHub returns the version numbers with prefixed "v", terraform package URL does not have it, tflint has
-  tflint_latest = jsondecode(data.http.latest_release["tflint"].response_body).name
-  terraform_latest = jsondecode(data.http.latest_release["terraform"].response_body).name
-  # var.tflint_version = "latest" -> "v0.54.0"
-  # var.tflint_version = "0.54.0" -> "v0.54.0"
-  tflint_version = var.tflint_version == "latest" ? local.tflint_latest : "v${var.tflint_version}"
-  # "v1.98.0" -> "1.98.0"
-  terraform_version = var.terraform_version == "latest" ? substr(local.terraform_latest,1,-1) : var.terraform_version
-  
+  # Only decode JSON when using "latest"
+  tflint_latest    = var.tflint_version == "latest" ? jsondecode(data.http.latest_release["tflint"].response_body).name : null
+  terraform_latest = var.terraform_version == "latest" ? jsondecode(data.http.latest_release["terraform"].response_body).name : null
+
+  # Use provided versions or latest
+  tflint_version    = var.tflint_version == "latest" ? local.tflint_latest : "v${var.tflint_version}"
+  terraform_version = var.terraform_version == "latest" ? substr(local.terraform_latest, 1, -1) : var.terraform_version
+
+  # Define OS-specific package URLs
   packages = {
     terraform = {
       target = "terraform-${local.terraform_version}.zip"
-      source = "https://releases.hashicorp.com/terraform/${local.terraform_version}/terraform_${local.terraform_version}_linux_amd64.zip"
+      source = "https://releases.hashicorp.com/terraform/${local.terraform_version}/terraform_${local.terraform_version}_${startswith(pathexpand("~"), "/") ? "linux" : "windows"}_amd64.zip"
     }
     tflint = {
       target = "tflint-${local.tflint_version}.zip"
-      source = "https://github.com/terraform-linters/tflint/releases/download/${local.tflint_version}/tflint_linux_amd64.zip"
+      source = "https://github.com/terraform-linters/tflint/releases/download/${local.tflint_version}/tflint_${startswith(pathexpand("~"), "/") ? "linux" : "windows"}_amd64.zip"
     }
   }
 }
@@ -84,25 +85,33 @@ locals {
 # Download packages locally
 resource "null_resource" "download_package" {
   for_each = local.packages
-	
+
   provisioner "local-exec" {
     command = <<EOF
-    curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source}
+    ${chomp(
+    coalesce(
+      # Windows PowerShell command
+      startswith(pathexpand("~"), "/") ? null : "$tempPath = Join-Path $env:TEMP '${each.value.target}'; $maxRetries = 3; $retryCount = 0; do { try { Invoke-WebRequest -Uri '${each.value.source}' -OutFile $tempPath -ErrorAction Stop; Write-Host \"Downloaded to: $tempPath\"; break } catch { $retryCount++; if ($retryCount -eq $maxRetries) { throw } Start-Sleep -Seconds 3 } } while ($retryCount -lt $maxRetries)",
+      # Linux/Unix command
+      "curl -qL -s --retry 3 -o /tmp/${each.value.target} ${each.value.source} && echo 'Downloaded to: /tmp/${each.value.target}'"
+    )
+)}
     EOF
-  }
+interpreter = startswith(pathexpand("~"), "/") ? [] : ["powershell", "-Command"]
+}
 
-  triggers = { # Re-download package if source or version number has changed
-    target = each.value.target
-    source = each.value.source
-  }
+triggers = {
+  target = each.value.target
+  source = each.value.source
+}
 }
 
 # upload packages to S3
 resource "aws_s3_object" "packages" {
-  for_each  = local.packages
-  bucket    = aws_s3_bucket.packages.bucket
-  key       = each.value.target
-  source    = "/tmp/${each.value.target}"
+  for_each = local.packages
+  bucket   = aws_s3_bucket.packages.bucket
+  key      = each.value.target
+  source   = startswith(pathexpand("~"), "/") ? "/tmp/${each.value.target}" : "${pathexpand("~/AppData/Local/Temp/")}${"/"}${each.value.target}"
 
-  depends_on = [ null_resource.download_package ]
+  depends_on = [null_resource.download_package]
 }
