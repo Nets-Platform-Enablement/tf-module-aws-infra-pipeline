@@ -69,15 +69,15 @@ locals {
   tflint_version    = var.tflint_version == "latest" ? local.tflint_latest : "v${var.tflint_version}"
   terraform_version = var.terraform_version == "latest" ? substr(local.terraform_latest, 1, -1) : var.terraform_version
 
-  # Define OS-specific package URLs
+  # Define package URLs, we do not need to download windows version as pipeline will run on linux
   packages = {
     terraform = {
       target = "terraform-${local.terraform_version}.zip"
-      source = "https://releases.hashicorp.com/terraform/${local.terraform_version}/terraform_${local.terraform_version}_${startswith(pathexpand("~"), "/") ? "linux" : "windows"}_amd64.zip"
+      source = "https://releases.hashicorp.com/terraform/${local.terraform_version}/terraform_${local.terraform_version}_linux_amd64.zip"
     }
     tflint = {
       target = "tflint-${local.tflint_version}.zip"
-      source = "https://github.com/terraform-linters/tflint/releases/download/${local.tflint_version}/tflint_${startswith(pathexpand("~"), "/") ? "linux" : "windows"}_amd64.zip"
+      source = "https://github.com/terraform-linters/tflint/releases/download/${local.tflint_version}/tflint_linux_amd64.zip"
     }
   }
 }
