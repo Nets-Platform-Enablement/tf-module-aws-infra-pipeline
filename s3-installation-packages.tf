@@ -101,8 +101,9 @@ interpreter = startswith(pathexpand("~"), "/") ? [] : ["powershell", "-Command"]
 }
 
 triggers = {
-  target = each.value.target
-  source = each.value.source
+  always_run = timestamp() # Ensures this runs every time
+  target     = each.value.target
+  source     = each.value.source
 }
 }
 
@@ -112,11 +113,6 @@ resource "aws_s3_object" "packages" {
   bucket   = aws_s3_bucket.packages.bucket
   key      = each.value.target
   source   = startswith(pathexpand("~"), "/") ? "/tmp/${each.value.target}" : "${pathexpand("~/AppData/Local/Temp/")}${"/"}${each.value.target}"
-
-  # Add etag to force update when file changes
-  etag = filemd5(
-    startswith(pathexpand("~"), "/") ? "/tmp/${each.value.target}" : "${pathexpand("~/AppData/Local/Temp/")}${"/"}${each.value.target}"
-  )
 
   depends_on = [null_resource.download_package]
 }

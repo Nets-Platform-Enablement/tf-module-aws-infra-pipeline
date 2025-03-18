@@ -7,6 +7,7 @@ phases:
       - cd /usr/bin
       - aws s3 cp s3://${TF_SOURCE} terraform.zip
       - unzip -o terraform.zip
+      - pip3 install --upgrade pip
       - pip3 install checkov%{ if !LATEST_CHECKOV }==${CHECKOV_VERSION}%{ endif }
   build:
     commands:   
