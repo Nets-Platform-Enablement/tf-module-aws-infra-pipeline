@@ -127,7 +127,7 @@ resource "aws_iam_role" "codebuild" {
 }
 
 resource "aws_iam_role_policy_attachments_exclusive" "codebuild" {
-  role_name   = aws_iam_role.codebuild.name
+  role_name = aws_iam_role.codebuild.name
   policy_arns = [
     for n in keys(data.aws_iam_policy.managed_default) : data.aws_iam_policy.managed_default[n].arn
   ]
@@ -135,8 +135,8 @@ resource "aws_iam_role_policy_attachments_exclusive" "codebuild" {
 
 resource "aws_iam_role_policy" "aws_managed" {
   for_each = tomap(data.aws_iam_policy.managed)
-  name = "CodebuildRolePolicy-${each.key}"
-  role = aws_iam_role.codebuild.id
+  name     = "CodebuildRolePolicy-${each.key}"
+  role     = aws_iam_role.codebuild.id
 
   policy = each.value.policy
 }
@@ -271,8 +271,8 @@ resource "aws_iam_role_policy" "codebuild" {
 # User defined IAM policy for CodeBuild role
 resource "aws_iam_role_policy" "codebuild_additionals" {
   count = length(var.role_policy.Statement) > 0 ? 1 : 0 # Do not add if role_policy is not given
-  name = "CodebuildRolePolicy-${local.name}-additional"
-  role = aws_iam_role.codebuild.id
+  name  = "CodebuildRolePolicy-${local.name}-additional"
+  role  = aws_iam_role.codebuild.id
 
   policy = jsonencode(
     var.role_policy

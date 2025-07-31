@@ -1,6 +1,6 @@
 #Creating SNS topic
 module "sns_topic" {
-  source  = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=6404f81"
+  source = "git::https://github.com/terraform-aws-modules/terraform-aws-sns.git?ref=6404f81"
   #version = "6.1.0"
 
   name              = "${local.name}-${var.environment}-updates"
