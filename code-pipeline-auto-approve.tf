@@ -1,11 +1,11 @@
 locals {
   checks = {
     "tflint" = {
-      name = "tflint"
+      name        = "tflint"
       ProjectName = aws_codebuild_project.tflint.name
     }
     "checkov" = var.enable_checkov ? {
-      name = "checkov"
+      name        = "checkov"
       ProjectName = aws_codebuild_project.checkov.name
     } : null
   }
@@ -20,8 +20,8 @@ resource "aws_codepipeline" "terraform_without_approval" {
     location = aws_s3_bucket.codepipeline_artifacts_store.bucket
     type     = "S3"
     encryption_key {
-      type  = "KMS"
-      id    = aws_kms_key.codeartifact_key.key_id
+      type = "KMS"
+      id   = aws_kms_key.codeartifact_key.key_id
     }
   }
   stage {
@@ -42,25 +42,25 @@ resource "aws_codepipeline" "terraform_without_approval" {
   }
 
   stage {
-      name = "Terraform-Project-Testing"
-      dynamic "action" {
-        for_each = var.enable_checkov ? [local.checks.tflint, local.checks.checkov] : [local.checks.tflint]
-        content {
-          run_order        = action.key+1
-          name             = action.value.name
-          category         = "Build"
-          owner            = "AWS"
-          provider         = "CodeBuild"
-          input_artifacts  = ["CodeWorkspace"]
-          output_artifacts = []
-          version          = "1"
-          configuration = {
-            ProjectName = action.value.ProjectName
-          }
+    name = "Terraform-Project-Testing"
+    dynamic "action" {
+      for_each = var.enable_checkov ? [local.checks.tflint, local.checks.checkov] : [local.checks.tflint]
+      content {
+        run_order        = action.key + 1
+        name             = action.value.name
+        category         = "Build"
+        owner            = "AWS"
+        provider         = "CodeBuild"
+        input_artifacts  = ["CodeWorkspace"]
+        output_artifacts = []
+        version          = "1"
+        configuration = {
+          ProjectName = action.value.ProjectName
         }
       }
+    }
   }
-    
+
 
   stage {
     name = "Deploy"

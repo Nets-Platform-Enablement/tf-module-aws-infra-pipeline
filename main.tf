@@ -18,8 +18,8 @@ locals {
     length(split("/", var.github_repository_id)) - 1
   )
   # If the 'name' is given, use it. Otherwise take the 'name' from github repository name
-  name      = coalesce(var.name, local.repo_name)
-  tfvars    = coalesce(var.variables_file, "environments/${var.environment}.tfvars")
+  name   = coalesce(var.name, local.repo_name)
+  tfvars = coalesce(var.variables_file, "environments/${var.environment}.tfvars")
 }
 
 data "aws_caller_identity" "current" {}
@@ -31,11 +31,11 @@ data "aws_iam_policy" "managed_default" {
     "AWSCodeBuildAdminAccess",
     "AWSCodeStarFullAccess",
   ])
-  
+
   name = each.value
 }
 
 data "aws_iam_policy" "managed" {
   for_each = var.managed_policies
-  name = each.value
+  name     = each.value
 }

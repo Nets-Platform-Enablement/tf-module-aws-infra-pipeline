@@ -46,6 +46,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "codepipeline_artifacts_store_b
   rule {
     id = "AllObjects"
 
+    filter {}
+
     noncurrent_version_expiration {
       noncurrent_days = 90
     }
@@ -106,6 +108,10 @@ resource "aws_kms_key" "codeartifact_key" {
   enable_key_rotation     = true
   policy                  = data.aws_iam_policy_document.key-policy.json
   tags                    = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 resource "aws_kms_alias" "codeartifact_key" {
   name          = "alias/${local.name}_codeartifact_key"

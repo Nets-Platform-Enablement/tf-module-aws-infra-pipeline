@@ -1,7 +1,7 @@
 # CodeBuild
 locals {
   terraform_package = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}"
-  tflint_package = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}"
+  tflint_package    = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}"
 }
 
 
@@ -20,18 +20,18 @@ resource "aws_kms_alias" "codebuild" {
 
 # CloudWatch logs
 resource "aws_cloudwatch_log_group" "codebuild" {
-  name = "codebuild/${local.name}"
-  tags = local.tags
+  name              = "codebuild/${local.name}"
+  tags              = local.tags
   retention_in_days = var.logs_retention_time
 }
 
 #Validate terraform
 resource "aws_codebuild_project" "tflint" {
-  name            = "${local.name}-tflint"
-  description     = "Managed using Terraform"
-  service_role    = aws_iam_role.codebuild.arn
-  encryption_key  = aws_kms_key.codebuild.arn
-  tags            = local.tags
+  name           = "${local.name}-tflint"
+  description    = "Managed using Terraform"
+  service_role   = aws_iam_role.codebuild.arn
+  encryption_key = aws_kms_key.codebuild.arn
+  tags           = local.tags
   artifacts {
     type = "CODEPIPELINE"
   }
@@ -64,11 +64,11 @@ resource "aws_codebuild_project" "tflint" {
 }
 
 resource "aws_codebuild_project" "checkov" {
-  name            = "${local.name}-checkov"
-  description     = "Managed using Terraform"
-  service_role    = aws_iam_role.codebuild.arn
-  encryption_key  = aws_kms_key.codebuild.arn
-  tags            = local.tags
+  name           = "${local.name}-checkov"
+  description    = "Managed using Terraform"
+  service_role   = aws_iam_role.codebuild.arn
+  encryption_key = aws_kms_key.codebuild.arn
+  tags           = local.tags
   artifacts {
     type = "CODEPIPELINE"
   }
@@ -102,11 +102,11 @@ resource "aws_codebuild_project" "checkov" {
 
 #Do show and plan for dry run Terraform
 resource "aws_codebuild_project" "tf_plan" {
-  name            = "${local.name}-tf-plan"
-  description     = "Managed using Terraform"
-  service_role    = aws_iam_role.codebuild.arn
-  encryption_key  = aws_kms_key.codebuild.arn
-  tags            = local.tags
+  name           = "${local.name}-tf-plan"
+  description    = "Managed using Terraform"
+  service_role   = aws_iam_role.codebuild.arn
+  encryption_key = aws_kms_key.codebuild.arn
+  tags           = local.tags
   artifacts {
     type = "CODEPIPELINE"
   }
@@ -143,11 +143,11 @@ resource "aws_codebuild_project" "tf_plan" {
 }
 
 resource "aws_codebuild_project" "tf_apply" {
-  name            = "${local.name}-tf-apply"
-  description     = "Managed using Terraform"
-  service_role    = aws_iam_role.codebuild.arn
-  encryption_key  = aws_kms_key.codebuild.arn
-  tags            = local.tags
+  name           = "${local.name}-tf-apply"
+  description    = "Managed using Terraform"
+  service_role   = aws_iam_role.codebuild.arn
+  encryption_key = aws_kms_key.codebuild.arn
+  tags           = local.tags
 
   artifacts {
     type = "CODEPIPELINE"
