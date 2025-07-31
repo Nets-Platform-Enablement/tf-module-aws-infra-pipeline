@@ -46,8 +46,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "codepipeline_artifacts_store_b
   rule {
     id = "AllObjects"
 
-    # Add this filter block to fix the deprecation warning
-    filter {}
+    filter {
+      prefix = ""
+    }
 
     noncurrent_version_expiration {
       noncurrent_days = 90
