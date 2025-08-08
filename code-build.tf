@@ -1,3 +1,8 @@
+variable "use_lambda_codebuild" {
+  description = "If true, use Lambda-based CodeBuild compute type (30min max duration). Default is standard Linux container."
+  type        = bool
+  default     = false
+}
 # CodeBuild
 locals {
   terraform_package = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}"
@@ -37,9 +42,9 @@ resource "aws_codebuild_project" "tflint" {
   }
 
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.use_lambda_codebuild ? "BUILD_LAMBDA_2GB" : "BUILD_GENERAL1_SMALL"
     image        = var.codebuild_image_id
-    type         = "LINUX_CONTAINER"
+    type         = var.use_lambda_codebuild ? "LINUX_LAMBDA_CONTAINER" : "LINUX_CONTAINER"
   }
 
   logs_config {
@@ -73,9 +78,9 @@ resource "aws_codebuild_project" "checkov" {
     type = "CODEPIPELINE"
   }
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.use_lambda_codebuild ? "BUILD_LAMBDA_2GB" : "BUILD_GENERAL1_SMALL"
     image        = "aws/codebuild/standard:7.0"
-    type         = "LINUX_CONTAINER"
+    type         = var.use_lambda_codebuild ? "LINUX_LAMBDA_CONTAINER" : "LINUX_CONTAINER"
   }
 
   logs_config {
@@ -119,9 +124,9 @@ resource "aws_codebuild_project" "tf_plan" {
   }
 
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.use_lambda_codebuild ? "BUILD_LAMBDA_2GB" : "BUILD_GENERAL1_SMALL"
     image        = var.codebuild_image_id
-    type         = "LINUX_CONTAINER"
+    type         = var.use_lambda_codebuild ? "LINUX_LAMBDA_CONTAINER" : "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
       value = local.tfvars
@@ -141,7 +146,6 @@ resource "aws_codebuild_project" "tf_plan" {
     )
   }
 }
-
 resource "aws_codebuild_project" "tf_apply" {
   name           = "${local.name}-tf-apply"
   description    = "Managed using Terraform"
@@ -154,9 +158,9 @@ resource "aws_codebuild_project" "tf_apply" {
   }
 
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.use_lambda_codebuild ? "BUILD_LAMBDA_2GB" : "BUILD_GENERAL1_SMALL"
     image        = var.codebuild_image_id
-    type         = "LINUX_CONTAINER"
+    type         = var.use_lambda_codebuild ? "LINUX_LAMBDA_CONTAINER" : "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
       value = local.tfvars

@@ -37,6 +37,12 @@ variable "name" {
   }
 }
 
+variable "use_lambda_codebuild" {
+  description = "If true, use Lambda-based CodeBuild compute type (30min max duration). Default is standard Linux container."
+  type        = bool
+  default     = false
+}
+
 variable "require_manual_approval" {
   type        = bool
   description = "Whether or not a manual approval of changes is required before applying changes"

@@ -1,3 +1,5 @@
+| use_lambda_codebuild | If true, use Lambda-based CodeBuild compute type (30min max duration). Default is standard Linux container. | bool | false | Lambda builds have a 30 minute max duration. |
+**Note:** If you set `use_lambda_codebuild = true`, Lambda-based CodeBuild projects have a maximum build duration of 30 minutes per build. See [AWS documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-compute-types.html#lambda-compute-types) for details.
 # tf-module-aws-infra-pipeline
 Terraform module for defining AWS CodePipeline for applying infrastructure from terraform code stored in GitHub-repository.
 
