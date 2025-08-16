@@ -27,3 +27,8 @@ output "artifact_bucket_id" {
   description = "Bucket used for store terraform plan"
   value       = aws_s3_bucket.codepipeline_artifacts_store.id
 }
+
+output "codebuild_role_arn" {
+  description = "ARN for the CodeBuild IAM role"
+  value       = aws_iam_role.codebuild.arn
+}
