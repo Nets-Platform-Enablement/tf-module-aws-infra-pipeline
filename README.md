@@ -103,7 +103,30 @@ data "aws_dynamodb_table" "tf_state" {
 - For defining more granular permissions, use `role_policy` variable.
 - If the pipeline is trying to make changes to _itself_, things most likely will break. In such case, perform `terraform apply` manually.
 
+## Outputs
+
+| Name                | Description                                              |
+|---------------------|----------------------------------------------------------|
+| name                | Name of the pipeline                                     |
+| sns_topic_arn       | ARN of the SNS topic used by Infra Pipeline              |
+| codepipeline_arn    | ARN of the CodePipeline                                  |
+| iam_role_arn        | ARN for the IAM role used by CodeBuild                   |
+| iam_role_id         | ID for the IAM role used by CodeBuild                    |
+| artifact_bucket_id  | ID of the bucket terraform plans are stored in           |
+| codebuild_role_arn  | ARN for the CodeBuild IAM role                           |
+
 ## Releases
+
+### v.2.2.2
+- New output: `codebuild_role_arn` (ARN for the CodeBuild IAM role)
+- Documentation: All module outputs are now described in the README
+
+### v.2.2.1
+- Prevent accidental destruction of `ams_kms_key`
+- Added filter prefix to `aws_s3_bucket_lifecycle_configuration`
+- Minor improvements to package download logic
+- Code formatting and cleanup
+- This version supports also Windows as running environment.
 
 ### v.2.2.0 Optional Checkov checks
 - *Breaking change*: This version does not support Windows as running environment.
@@ -116,7 +139,6 @@ data "aws_dynamodb_table" "tf_state" {
 - fix: Deprecation fix for aws_iam_role.managed_policy_arns
 - fix: CodeBuild project log to a single CloudWatch Group `codebuild/{name}`
   - New setting `logs_retention_time`
-
 
 ### v.2.1.0 Customizable build image
 - New setting `codebuild_image_id`, by default "aws/codebuild/standard:7.0", more options at [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html)
