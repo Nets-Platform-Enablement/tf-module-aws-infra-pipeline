@@ -35,6 +35,10 @@ variable "name" {
     condition     = length(var.name) == 0 || can(regex("^[0-9A-Za-z_-]+$", var.name))
     error_message = "For the name value only a-Z, 0-9, dash and underscore are allowed."
   }
+  validation {
+    condition     = length(var.name) == 0 || length(var.name) <= 38
+    error_message = "The name value must be 38 characters or less."
+  }
 }
 
 variable "require_manual_approval" {
