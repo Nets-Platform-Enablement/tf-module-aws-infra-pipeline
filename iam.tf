@@ -1,7 +1,7 @@
 #IAM for CodePipeline
 
 resource "aws_iam_role" "codepipeline" {
-  name_prefix = "CodepipelineRole-${local.name}"
+  name_prefix = substr("CodepipelineRole-${local.name}", 0, 38)
   description = "CodePipeline Service Role for ${local.name} - Managed by Terraform"
   tags        = local.tags
 
@@ -23,7 +23,7 @@ resource "aws_iam_role" "codepipeline" {
 
 resource "aws_iam_role_policy" "codepipeline" {
   role = aws_iam_role.codepipeline.id
-  name = "CodepipelineRolePolicy-${local.name}"
+  name = substr("CodepipelineRolePolicy-${local.name}", 0, 64)
 
   policy = jsonencode(
     {
@@ -105,8 +105,8 @@ resource "aws_iam_role_policy" "codepipeline" {
 #IAM for CodeBuild
 
 resource "aws_iam_role" "codebuild" {
-  name_prefix = "CodebuildRole-${local.name}"
-  description = "CodeBuild Service Role - Managed by Terraform"
+  name_prefix = substr("CodebuildRole-${local.name}", 0, 38)
+  description = "CodeBuild Service Role for ${local.name} - Managed by Terraform"
   tags        = local.tags
 
   assume_role_policy = jsonencode(
@@ -142,7 +142,7 @@ resource "aws_iam_role_policy" "aws_managed" {
 }
 
 resource "aws_iam_role_policy" "codebuild" {
-  name = "CodebuildRolePolicy-${local.name}"
+  name = substr("CodebuildRolePolicy-${local.name}", 0, 64)
   role = aws_iam_role.codebuild.id
 
   policy = jsonencode(

@@ -7,7 +7,7 @@ resource "aws_codestarconnections_connection" "this" {
 
 resource "aws_codepipeline" "terraform" {
   count    = var.require_manual_approval ? 1 : 0
-  name     = "${local.name}-${var.environment}-terraform-apply"
+  name     = substr("${local.name}-${var.environment}-terraform-apply", 0, 100)
   role_arn = aws_iam_role.codepipeline.arn
   tags     = local.tags
   artifact_store {
