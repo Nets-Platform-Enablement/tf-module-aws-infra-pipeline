@@ -13,7 +13,8 @@ variable "github_repository_id" {
 
 variable "tf_state_dynamodb_arn" {
   type        = string
-  description = "ARN of the DynamoDB maintaining Terraform state"
+  description = "ARN of the DynamoDB maintaining Terraform state (optional)"
+  default     = ""
   sensitive   = false
 }
 

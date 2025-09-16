@@ -148,7 +148,7 @@ resource "aws_iam_role_policy" "codebuild" {
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
-      "Statement" : [
+      "Statement" : concat([
         {
           "Effect" : "Allow",
           "Action" : [
@@ -159,111 +159,111 @@ resource "aws_iam_role_policy" "codebuild" {
             "${aws_s3_bucket.codepipeline_artifacts_store.arn}/*",
             "arn:aws:s3:::*" # terraform state bucket is not known, but CodeBuild needs write access
           ]
-        },
-        {
+        }],
+        var.tf_state_dynamodb_arn != "" ? [{
           "Effect" : "Allow",
           "Action" : [
             "dynamodb:*"
           ],
           "Resource" : var.tf_state_dynamodb_arn
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "iam:GetRole",
-            "iam:GetRolePolicy",
-            "iam:ListRolePolicies",
-            "iam:ListAttachedRolePolicies"
-          ],
-          "Resource" : [aws_iam_role.codepipeline.arn, aws_iam_role.codebuild.arn]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "iam:ListPolicies",
-            "iam:GetPolicy",
-            "iam:GetPolicyVersion",
-          ],
-          "Resource" : ["*"]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "kms:ListAliases"
-          ],
-          "Resource" : [
-            "*"
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "kms:*"
-          ],
-          "Resource" : [
-            aws_kms_key.codeartifact_key.arn,
-            aws_kms_key.sns_topic_encryption.arn,
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : "sts:GetServiceBearerToken",
-          "Resource" : "*",
-          "Condition" : {
-            "StringEquals" : {
-              "sts:AWSServiceName" : "codeartifact.amazonaws.com"
+        }] : [],
+        [
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "iam:GetRole",
+              "iam:GetRolePolicy",
+              "iam:ListRolePolicies",
+              "iam:ListAttachedRolePolicies"
+            ],
+            "Resource" : [aws_iam_role.codepipeline.arn, aws_iam_role.codebuild.arn]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "iam:ListPolicies",
+              "iam:GetPolicy",
+              "iam:GetPolicyVersion",
+            ],
+            "Resource" : ["*"]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "kms:ListAliases"
+            ],
+            "Resource" : [
+              "*"
+            ]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "kms:*"
+            ],
+            "Resource" : [
+              aws_kms_key.codeartifact_key.arn,
+              aws_kms_key.sns_topic_encryption.arn,
+            ]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : "sts:GetServiceBearerToken",
+            "Resource" : "*",
+            "Condition" : {
+              "StringEquals" : {
+                "sts:AWSServiceName" : "codeartifact.amazonaws.com"
+              }
             }
-          }
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : "iam:PassRole",
-          "Resource" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*"
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "logs:GetLogEvents",
-            "logs:PutLogEvents",
-          ],
-          "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:DescribeLogStreams",
-            "logs:PutRetentionPolicy",
-            "logs:CreateLogGroup"
-          ],
-          "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "ec2:DescribeVpcAttribute",
-          ],
-          "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "SNS:*",
-          ],
-          "Resource" : [module.sns_topic.topic_arn]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "events:*",
-          ],
-          "Resource" : [
-            aws_cloudwatch_event_rule.failed_builds.arn,
-            aws_cloudwatch_event_rule.succes_builds.arn
-          ]
-        },
-      ]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : "iam:PassRole",
+            "Resource" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/*"
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "logs:GetLogEvents",
+              "logs:PutLogEvents",
+            ],
+            "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:DescribeLogStreams",
+              "logs:PutRetentionPolicy",
+              "logs:CreateLogGroup"
+            ],
+            "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "ec2:DescribeVpcAttribute",
+            ],
+            "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "SNS:*",
+            ],
+            "Resource" : [module.sns_topic.topic_arn]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "events:*",
+            ],
+            "Resource" : [
+              aws_cloudwatch_event_rule.failed_builds.arn,
+              aws_cloudwatch_event_rule.succes_builds.arn
+            ]
+      }])
     }
   )
 }
