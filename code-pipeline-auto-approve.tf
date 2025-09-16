@@ -13,7 +13,7 @@ locals {
 
 resource "aws_codepipeline" "terraform_without_approval" {
   count    = var.require_manual_approval ? 0 : 1
-  name     = "${local.name}-${var.environment}-terraform-apply"
+  name     = substr("${local.name}-${var.environment}-terraform-apply", 0, 100)
   role_arn = aws_iam_role.codepipeline.arn
   tags     = local.tags
   artifact_store {

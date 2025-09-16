@@ -10,7 +10,7 @@ module "tf_infra_pipeline" {
   github_repository_id  = "Nets-Platform-Enablement/sample-project"
   environment           = "dev"
   require_manual_approval = false
-  tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
+  tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn # Optional: only needed if using DynamoDB for state locking
   variables_file        = "environment/dev.tfvars"
   tags                  = local.tags
 }
@@ -33,7 +33,7 @@ module "tf_infra_pipeline" {
   terraform_version     = "1.9.8"
   tflint_version        = "0.53.0"
   checkov_version       = "3.2.281"
-  tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn
+  tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn # Optional: only needed if using DynamoDB for state locking
   variables_file        = "environment/prod.tfvars"
   codebuild_image_id    = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
   tfbackend_file        = "environment/prod.s3.tfbackend"
@@ -69,7 +69,7 @@ data "aws_dynamodb_table" "tf_state" {
 | name | Optional name for the pipeline, if not given, name is derived from the github repository name | string | "" | Alpha-numeric, dash (-) and underscore(_) allowed. Renaming pipeline does not work, deploy new instance of the module instead |
 | github_repository_id | ID of the terraform repository | string |  | `https://github.com/{this-part}.git` |
 | branch_name | Name of the branch to deploy | string | `main` |  |
-| tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state | string |  |  |
+| tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state (optional) | string | "" | Leave empty if not using DynamoDB for state locking |
 | aws_region | AWS region to deploy pipeline to | string | `eu-central-1` |  |
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
@@ -89,6 +89,28 @@ data "aws_dynamodb_table" "tf_state" {
 | enable_checkov | If checkov should be ran | boolean | false | Without `require_checkov_pass = true`, this will only log the findings | 
 | require_checkov_pass | Should failed checkov check prevent the changes from being applied | boolean | false | Requires `enable_checkov = true` to be effective | 
 | logs_retention_time | Time to retain the logs in days, allowed values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365 and 0 | integer | 30 | 0 = never expire | 
+
+## State Locking Configuration
+
+**Recommended**: Instead of using DynamoDB for state locking, use the native S3 state locking feature by adding `use_lockfile = true` to your `.tfbackend` file:
+
+```hcl
+bucket         = "your-terraform-state-bucket"
+key            = "path/to/your/terraform.tfstate"
+region         = "eu-central-1"
+use_lockfile   = true
+```
+
+This approach:
+- Eliminates the need for a separate DynamoDB table
+- Reduces infrastructure complexity and costs
+- Provides the same locking functionality using S3's native capabilities
+- No longer requires the `tf_state_dynamodb_arn` variable
+
+If you're currently using DynamoDB for state locking, you can migrate by:
+1. Adding `use_lockfile = true` to your `.tfbackend` file
+2. Removing or leaving empty the `tf_state_dynamodb_arn` variable in your module configuration
+3. The DynamoDB table can be removed after successful migration
 
 ## Notes
 

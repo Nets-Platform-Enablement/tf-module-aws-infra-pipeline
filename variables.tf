@@ -13,7 +13,8 @@ variable "github_repository_id" {
 
 variable "tf_state_dynamodb_arn" {
   type        = string
-  description = "ARN of the DynamoDB maintaining Terraform state"
+  description = "ARN of the DynamoDB maintaining Terraform state (optional)"
+  default     = ""
   sensitive   = false
 }
 
@@ -34,6 +35,10 @@ variable "name" {
     # regex(...) fails if it cannot find a match
     condition     = length(var.name) == 0 || can(regex("^[0-9A-Za-z_-]+$", var.name))
     error_message = "For the name value only a-Z, 0-9, dash and underscore are allowed."
+  }
+  validation {
+    condition     = length(var.name) == 0 || length(var.name) <= 38
+    error_message = "The name value must be 38 characters or less."
   }
 }
 
