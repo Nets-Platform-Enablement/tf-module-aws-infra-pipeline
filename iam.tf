@@ -227,7 +227,10 @@ resource "aws_iam_role_policy" "codebuild" {
               "logs:GetLogEvents",
               "logs:PutLogEvents",
             ],
-            "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+            "Resource" : [
+              "arn:aws:logs:*:*:log-group:/aws/codebuild/*:*",
+              "arn:aws:logs:*:*:log-group:codebuild/*:*"
+            ]
           },
           {
             "Effect" : "Allow",
@@ -238,7 +241,10 @@ resource "aws_iam_role_policy" "codebuild" {
               "logs:PutRetentionPolicy",
               "logs:CreateLogGroup"
             ],
-            "Resource" : ["arn:aws:logs:*:*:log-group:/aws/codebuild/*:*"]
+            "Resource" : [
+              "arn:aws:logs:*:*:log-group:/aws/codebuild/*:*",
+              "arn:aws:logs:*:*:log-group:codebuild/*:*"
+            ]
           },
           {
             "Effect" : "Allow",
