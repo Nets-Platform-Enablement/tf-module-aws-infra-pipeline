@@ -148,7 +148,7 @@ resource "aws_iam_role_policy" "codebuild" {
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
-      "Statement" : concat([
+      "Statement" : flatten([concat([
         {
           "Effect" : "Allow",
           "Action" : [
@@ -253,38 +253,36 @@ resource "aws_iam_role_policy" "codebuild" {
             ],
             "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
         }],
-        (var.vpc_id != "" ? [
-          {
-            "Effect" : "Allow",
-            "Action" : [
-              "ec2:CreateNetworkInterface"
-            ],
-            "Resource" : [
-              "arn:aws:ec2:*:*:network-interface/*",
-              "arn:aws:ec2:*:*:subnet/*",
-              "arn:aws:ec2:*:*:security-group/*"
-            ]
-          },
-          {
-            "Effect" : "Allow",
-            "Action" : [
-              "ec2:DeleteNetworkInterface",
-              "ec2:CreateNetworkInterfacePermission"
-            ],
-            "Resource" : "arn:aws:ec2:*:*:network-interface/*"
-          },
-          {
-            "Effect" : "Allow",
-            "Action" : [
-              "ec2:DescribeNetworkInterfaces",
-              "ec2:DescribeSubnets",
-              "ec2:DescribeSecurityGroups",
-              "ec2:DescribeDhcpOptions",
-              "ec2:DescribeVpcs"
-            ],
-            "Resource" : "*"
-          }
-        ] : []),
+        var.vpc_id != "" ? [{
+          "Effect" : "Allow",
+          "Action" : [
+            "ec2:CreateNetworkInterface"
+          ],
+          "Resource" : [
+            "arn:aws:ec2:*:*:network-interface/*",
+            "arn:aws:ec2:*:*:subnet/*",
+            "arn:aws:ec2:*:*:security-group/*"
+          ]
+        }] : [],
+        var.vpc_id != "" ? [{
+          "Effect" : "Allow",
+          "Action" : [
+            "ec2:DeleteNetworkInterface",
+            "ec2:CreateNetworkInterfacePermission"
+          ],
+          "Resource" : "arn:aws:ec2:*:*:network-interface/*"
+        }] : [],
+        var.vpc_id != "" ? [{
+          "Effect" : "Allow",
+          "Action" : [
+            "ec2:DescribeNetworkInterfaces",
+            "ec2:DescribeSubnets",
+            "ec2:DescribeSecurityGroups",
+            "ec2:DescribeDhcpOptions",
+            "ec2:DescribeVpcs"
+          ],
+          "Resource" : "*"
+        }] : [],
         [{
           "Effect" : "Allow",
           "Action" : [
@@ -301,7 +299,7 @@ resource "aws_iam_role_policy" "codebuild" {
               aws_cloudwatch_event_rule.failed_builds.arn,
               aws_cloudwatch_event_rule.succes_builds.arn
             ]
-      }])
+      }])])
     }
   )
 }
