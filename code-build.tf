@@ -3,7 +3,7 @@ locals {
   terraform_package = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}"
   tflint_package    = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}"
   # Use provided security groups or the default one we create
-  codebuild_security_group_ids = length(var.security_group_ids) > 0 ? var.security_group_ids : [aws_security_group.codebuild[0].id]
+  codebuild_security_group_ids = length(var.security_group_ids) > 0 ? var.security_group_ids : (var.vpc_id != "" ? [aws_security_group.codebuild[0].id] : [])
 }
 
 # Default security group for CodeBuild (only created if VPC is used and no security groups provided)
