@@ -2,6 +2,28 @@
 locals {
   terraform_package = "${aws_s3_bucket.packages.bucket}/${local.packages.terraform.target}"
   tflint_package    = "${aws_s3_bucket.packages.bucket}/${local.packages.tflint.target}"
+  # Use provided security groups or the default one we create
+  codebuild_security_group_ids = length(var.security_group_ids) > 0 ? var.security_group_ids : (var.vpc_id != "" ? [aws_security_group.codebuild[0].id] : [])
+}
+
+# Default security group for CodeBuild (only created if VPC is used and no security groups provided)
+resource "aws_security_group" "codebuild" {
+  count       = var.vpc_id != "" && length(var.security_group_ids) == 0 ? 1 : 0
+  name_prefix = "codebuild-${local.name}-"
+  description = "Security group for CodeBuild projects in ${local.name} pipeline"
+  vpc_id      = var.vpc_id
+  tags        = merge(local.tags, { Name = "codebuild-${local.name}" })
+
+  # Allow all outbound traffic (required for downloading packages, accessing AWS APIs, etc.)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
+  }
+
+  # No ingress rules - CodeBuild doesn't need inbound traffic
 }
 
 
@@ -42,6 +64,15 @@ resource "aws_codebuild_project" "tflint" {
     type         = "LINUX_CONTAINER"
   }
 
+  dynamic "vpc_config" {
+    for_each = var.vpc_id != "" ? [1] : []
+    content {
+      vpc_id             = var.vpc_id
+      subnets            = var.subnet_ids
+      security_group_ids = local.codebuild_security_group_ids
+    }
+  }
+
   logs_config {
     cloudwatch_logs {
       group_name  = aws_cloudwatch_log_group.codebuild.name
@@ -76,6 +107,15 @@ resource "aws_codebuild_project" "checkov" {
     compute_type = "BUILD_GENERAL1_SMALL"
     image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
+  }
+
+  dynamic "vpc_config" {
+    for_each = var.vpc_id != "" ? [1] : []
+    content {
+      vpc_id             = var.vpc_id
+      subnets            = var.subnet_ids
+      security_group_ids = local.codebuild_security_group_ids
+    }
   }
 
   logs_config {
@@ -128,6 +168,15 @@ resource "aws_codebuild_project" "tf_plan" {
     }
   }
 
+  dynamic "vpc_config" {
+    for_each = var.vpc_id != "" ? [1] : []
+    content {
+      vpc_id             = var.vpc_id
+      subnets            = var.subnet_ids
+      security_group_ids = local.codebuild_security_group_ids
+    }
+  }
+
   source {
     type = "CODEPIPELINE"
     buildspec = templatefile(
@@ -160,6 +209,15 @@ resource "aws_codebuild_project" "tf_apply" {
     environment_variable {
       name  = "VAR_FILE"
       value = local.tfvars
+    }
+  }
+
+  dynamic "vpc_config" {
+    for_each = var.vpc_id != "" ? [1] : []
+    content {
+      vpc_id             = var.vpc_id
+      subnets            = var.subnet_ids
+      security_group_ids = local.codebuild_security_group_ids
     }
   }
 
