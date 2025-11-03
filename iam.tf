@@ -253,20 +253,38 @@ resource "aws_iam_role_policy" "codebuild" {
             ],
             "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
         }],
-        var.vpc_id != "" ? [{
-          "Effect" : "Allow",
-          "Action" : [
-            "ec2:CreateNetworkInterface",
-            "ec2:DescribeNetworkInterfaces",
-            "ec2:DeleteNetworkInterface",
-            "ec2:DescribeSubnets",
-            "ec2:DescribeSecurityGroups",
-            "ec2:DescribeDhcpOptions",
-            "ec2:DescribeVpcs",
-            "ec2:CreateNetworkInterfacePermission"
-          ],
-          "Resource" : "*"
-        }] : [],
+        var.vpc_id != "" ? [
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "ec2:CreateNetworkInterface"
+            ],
+            "Resource" : [
+              "arn:aws:ec2:*:*:network-interface/*",
+              "arn:aws:ec2:*:*:subnet/*",
+              "arn:aws:ec2:*:*:security-group/*"
+            ]
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "ec2:DeleteNetworkInterface",
+              "ec2:CreateNetworkInterfacePermission"
+            ],
+            "Resource" : "arn:aws:ec2:*:*:network-interface/*"
+          },
+          {
+            "Effect" : "Allow",
+            "Action" : [
+              "ec2:DescribeNetworkInterfaces",
+              "ec2:DescribeSubnets",
+              "ec2:DescribeSecurityGroups",
+              "ec2:DescribeDhcpOptions",
+              "ec2:DescribeVpcs"
+            ],
+            "Resource" : "*"
+          }
+        ] : [],
         [{
           "Effect" : "Allow",
           "Action" : [
