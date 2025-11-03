@@ -148,7 +148,7 @@ resource "aws_iam_role_policy" "codebuild" {
   policy = jsonencode(
     {
       "Version" : "2012-10-17",
-      "Statement" : concat([
+      "Statement" : flatten([concat([
         {
           "Effect" : "Allow",
           "Action" : [
@@ -301,7 +301,7 @@ resource "aws_iam_role_policy" "codebuild" {
               aws_cloudwatch_event_rule.failed_builds.arn,
               aws_cloudwatch_event_rule.succes_builds.arn
             ]
-      }])
+      }])])
     }
   )
 }
