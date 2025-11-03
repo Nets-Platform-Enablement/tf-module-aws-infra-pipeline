@@ -253,7 +253,7 @@ resource "aws_iam_role_policy" "codebuild" {
             ],
             "Resource" : ["arn:aws:ec2:*:*:vpc/*"]
         }],
-        var.vpc_id != "" ? [
+        (var.vpc_id != "" ? [
           {
             "Effect" : "Allow",
             "Action" : [
@@ -284,7 +284,7 @@ resource "aws_iam_role_policy" "codebuild" {
             ],
             "Resource" : "*"
           }
-        ] : [],
+        ] : []),
         [{
           "Effect" : "Allow",
           "Action" : [
