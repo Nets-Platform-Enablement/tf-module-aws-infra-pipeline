@@ -78,6 +78,9 @@ data "aws_dynamodb_table" "tf_state" {
 | tflint_version | The version of tflint to use | string | "latest" | Either semantic version number or "latest" |
 | checkov_version | The version of checkov to use | string | "latest" | Either semantic version number or "latest" |
 | codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
+| vpc_id | VPC ID where CodeBuild projects will run (optional) | string | "" | If provided, CodeBuild instances will run inside the VPC in private networks |
+| subnet_ids | List of subnet IDs for CodeBuild projects (optional) | list(string) | [] | Use private subnets for security. Required if vpc_id is provided |
+| security_group_ids | List of security group IDs for CodeBuild projects (optional) | list(string) | [] | If not provided, a default security group with egress-only rules will be created |
 | tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
 | managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
 | role_policy | A map describing IAM Role Policy, similar to [iam_role_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy). Module will format the value into json-string. | object({}) | {Statement = []} |  |
@@ -111,6 +114,43 @@ If you're currently using DynamoDB for state locking, you can migrate by:
 1. Adding `use_lockfile = true` to your `.tfbackend` file
 2. Removing or leaving empty the `tf_state_dynamodb_arn` variable in your module configuration
 3. The DynamoDB table can be removed after successful migration
+
+## VPC Configuration (Optional)
+
+You can optionally run CodeBuild instances inside a VPC in private networks for enhanced security. This is useful when your Terraform code needs to access resources in a private network or when you want to restrict outbound internet access.
+
+To enable VPC configuration, provide the VPC ID and subnet IDs:
+
+```hcl
+module "tf_infra_pipeline" {
+  source = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.3.0"
+  
+  # ... other required variables ...
+  
+  # VPC Configuration (minimum required)
+  vpc_id     = "vpc-1234567890abcdef0"
+  subnet_ids = ["subnet-12345678", "subnet-87654321"]  # Use private subnets
+  
+  # Optional: Provide your own security groups
+  # security_group_ids = ["sg-12345678"]
+}
+```
+
+**Security Group Behavior:**
+- If you don't provide `security_group_ids`, the module will automatically create a default security group with:
+  - ✅ **Egress (outbound)**: Allow all traffic (required for downloading packages, accessing AWS APIs, etc.)
+  - ❌ **Ingress (inbound)**: No inbound rules (CodeBuild doesn't need incoming connections)
+- If you provide `security_group_ids`, your security groups will be used instead
+
+**Important considerations:**
+- Use **private subnets** for security best practices
+- Ensure your subnets have either:
+  - NAT Gateway configured for internet access (required for downloading Terraform, tflint, etc.)
+  - VPC endpoints for AWS services (S3, ECR, CloudWatch Logs, etc.)
+- If using custom security groups, ensure they allow outbound traffic to required services
+- The CodeBuild IAM role automatically receives the necessary EC2 network interface permissions when VPC is configured
+
+If you don't provide VPC configuration, CodeBuild instances will run in AWS-managed infrastructure with public internet access (default behavior).
 
 ## Notes
 

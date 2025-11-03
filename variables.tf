@@ -173,3 +173,24 @@ variable "codebuild_image_id" {
   default     = "aws/codebuild/standard:7.0"
   description = "ID of the CodeBuild instance image"
 }
+
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID where CodeBuild projects will run (optional). If provided, CodeBuild will run inside the VPC"
+  default     = ""
+  sensitive   = false
+}
+
+variable "subnet_ids" {
+  type        = list(string)
+  description = "List of subnet IDs for CodeBuild projects (optional). Use private subnets for security. Required if vpc_id is provided"
+  default     = []
+  sensitive   = false
+}
+
+variable "security_group_ids" {
+  type        = list(string)
+  description = "List of security group IDs for CodeBuild projects (optional). If not provided and vpc_id is set, a default security group with egress-only rules will be created"
+  default     = []
+  sensitive   = false
+}
