@@ -59,9 +59,14 @@ resource "aws_codebuild_project" "tflint" {
   }
 
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.codebuild_compute_type
     image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
+  }
+
+  cache {
+    type  = "LOCAL"
+    modes = ["LOCAL_CUSTOM_CACHE", "LOCAL_SOURCE_CACHE"]
   }
 
   dynamic "vpc_config" {
@@ -104,9 +109,14 @@ resource "aws_codebuild_project" "checkov" {
     type = "CODEPIPELINE"
   }
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.codebuild_compute_type
     image        = "aws/codebuild/standard:7.0"
     type         = "LINUX_CONTAINER"
+  }
+
+  cache {
+    type  = "LOCAL"
+    modes = ["LOCAL_CUSTOM_CACHE", "LOCAL_SOURCE_CACHE"]
   }
 
   dynamic "vpc_config" {
@@ -159,13 +169,18 @@ resource "aws_codebuild_project" "tf_plan" {
   }
 
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.codebuild_compute_type
     image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
       value = local.tfvars
     }
+  }
+
+  cache {
+    type  = "LOCAL"
+    modes = ["LOCAL_CUSTOM_CACHE", "LOCAL_SOURCE_CACHE"]
   }
 
   dynamic "vpc_config" {
@@ -203,13 +218,18 @@ resource "aws_codebuild_project" "tf_apply" {
   }
 
   environment {
-    compute_type = "BUILD_GENERAL1_SMALL"
+    compute_type = var.codebuild_compute_type
     image        = var.codebuild_image_id
     type         = "LINUX_CONTAINER"
     environment_variable {
       name  = "VAR_FILE"
       value = local.tfvars
     }
+  }
+
+  cache {
+    type  = "LOCAL"
+    modes = ["LOCAL_CUSTOM_CACHE", "LOCAL_SOURCE_CACHE"]
   }
 
   dynamic "vpc_config" {

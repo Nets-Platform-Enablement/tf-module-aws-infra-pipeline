@@ -174,6 +174,16 @@ variable "codebuild_image_id" {
   description = "ID of the CodeBuild instance image"
 }
 
+variable "codebuild_compute_type" {
+  type        = string
+  default     = "BUILD_GENERAL1_SMALL"
+  description = "CodeBuild compute type. Options: BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE"
+  validation {
+    condition     = contains(["BUILD_GENERAL1_SMALL", "BUILD_GENERAL1_MEDIUM", "BUILD_GENERAL1_LARGE", "BUILD_GENERAL1_2XLARGE"], var.codebuild_compute_type)
+    error_message = "Compute type must be one of: BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE"
+  }
+}
+
 variable "vpc_id" {
   type        = string
   description = "VPC ID where CodeBuild projects will run (optional). If provided, CodeBuild will run inside the VPC"
