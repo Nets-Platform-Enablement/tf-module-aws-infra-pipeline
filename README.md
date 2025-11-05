@@ -79,6 +79,7 @@ data "aws_dynamodb_table" "tf_state" {
 | checkov_version | The version of checkov to use | string | "latest" | Either semantic version number or "latest" |
 | codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
 | codebuild_compute_type | CodeBuild compute type for all build projects | string | "BUILD_GENERAL1_SMALL" | Options: BUILD_GENERAL1_SMALL, BUILD_GENERAL1_MEDIUM, BUILD_GENERAL1_LARGE, BUILD_GENERAL1_2XLARGE. Use larger types for better performance on complex projects |
+| terraform_init_upgrade | Whether to run terraform init with -upgrade flag | bool | false | Set to `true` to check for provider updates on every run. Set to `false` (default) for faster builds using cached providers. Only needed when you can't run terraform locally |
 | vpc_id | VPC ID where CodeBuild projects will run (optional) | string | "" | If provided, CodeBuild instances will run inside the VPC in private networks |
 | subnet_ids | List of subnet IDs for CodeBuild projects (optional) | list(string) | [] | Use private subnets for security. Required if vpc_id is provided |
 | security_group_ids | List of security group IDs for CodeBuild projects (optional) | list(string) | [] | If not provided, a default security group with egress-only rules will be created |
@@ -185,6 +186,35 @@ Use the `codebuild_compute_type` variable to allocate appropriate compute resour
 - `BUILD_GENERAL1_2XLARGE` - 144 GB RAM, 72 vCPUs - for very large projects
 
 Higher compute types can significantly reduce build times for resource-intensive operations like large terraform plans and applies.
+
+### Optimized Terraform Init
+The `terraform init` command runs without the `-upgrade` flag by default, allowing it to use cached provider plugins instead of checking for updates on every build. This significantly reduces initialization time while still ensuring consistent provider versions through your lock file.
+
+**When you need to upgrade providers:**
+
+If you can run Terraform locally:
+```bash
+# Locally, run this once:
+terraform init -upgrade
+
+# Commit the updated .terraform.lock.hcl
+git add .terraform.lock.hcl
+git commit -m "chore: upgrade terraform providers"
+```
+
+If you cannot run Terraform locally (everything must happen in the pipeline):
+```hcl
+module "tf_infra_pipeline" {
+  source = "..."
+  
+  # Enable provider upgrades in the pipeline
+  terraform_init_upgrade = true
+  
+  # ... other variables ...
+}
+```
+
+**Note**: Setting `terraform_init_upgrade = true` will make builds 10-20 seconds slower as it checks for provider updates on every run.
 
 ## Notes
 

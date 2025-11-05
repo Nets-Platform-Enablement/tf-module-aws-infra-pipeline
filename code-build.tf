@@ -90,10 +90,11 @@ resource "aws_codebuild_project" "tflint" {
     buildspec = templatefile(
       "${path.module}/files/buildspec_tflint.yml.tftpl",
       {
-        TF_SOURCE     = local.terraform_package,
-        TFLINT_SOURCE = local.tflint_package,
-        DIRECTORY     = var.directory,
-        BACKENDFILE   = var.tfbackend_file,
+        TF_SOURCE         = local.terraform_package,
+        TFLINT_SOURCE     = local.tflint_package,
+        DIRECTORY         = var.directory,
+        BACKENDFILE       = var.tfbackend_file,
+        UPGRADE_PROVIDERS = var.terraform_init_upgrade,
       }
     )
   }
@@ -197,10 +198,11 @@ resource "aws_codebuild_project" "tf_plan" {
     buildspec = templatefile(
       "${path.module}/files/buildspec_tf_plan.yml.tftpl",
       {
-        TF_SOURCE   = local.terraform_package,
-        DIRECTORY   = var.directory,
-        EXTRA_FILES = var.extra_build_artifacts,
-        BACKENDFILE = var.tfbackend_file
+        TF_SOURCE         = local.terraform_package,
+        DIRECTORY         = var.directory,
+        EXTRA_FILES       = var.extra_build_artifacts,
+        BACKENDFILE       = var.tfbackend_file,
+        UPGRADE_PROVIDERS = var.terraform_init_upgrade,
       }
     )
   }
@@ -253,9 +255,10 @@ resource "aws_codebuild_project" "tf_apply" {
     buildspec = templatefile(
       "${path.module}/files/${var.require_manual_approval ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}",
       {
-        TF_SOURCE   = local.terraform_package,
-        DIRECTORY   = var.directory,
-        BACKENDFILE = var.tfbackend_file
+        TF_SOURCE         = local.terraform_package,
+        DIRECTORY         = var.directory,
+        BACKENDFILE       = var.tfbackend_file,
+        UPGRADE_PROVIDERS = var.terraform_init_upgrade,
       }
     )
   }

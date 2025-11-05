@@ -204,3 +204,10 @@ variable "security_group_ids" {
   default     = []
   sensitive   = false
 }
+
+variable "terraform_init_upgrade" {
+  type        = bool
+  description = "Whether to run 'terraform init -upgrade' to check for provider updates. Set to true when you need to upgrade providers without local access. Performance: false is faster (uses cached providers), true checks for updates every run"
+  default     = false
+  sensitive   = false
+}
