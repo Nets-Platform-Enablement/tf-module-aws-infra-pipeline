@@ -1,28 +1,45 @@
 version: 0.2
 
+cache:
+  paths:
+    - '/root/.terraform.d/plugin-cache/**/*'
+    - '/tmp/tools/**/*'
+
 phases:
 
   install:
     commands:
-      - cd /usr/bin
-      - aws s3 cp s3://${TF_SOURCE} terraform.zip
-      - unzip -o terraform.zip
-      - aws s3 cp s3://${TFLINT_SOURCE} tflint.zip
-      - unzip -o tflint.zip -d /tmp/tflint
-      - sudo mkdir -p /usr/local/bin
-      - sudo install -c -v /tmp/tflint/tflint /usr/local/bin
+      - mkdir -p /tmp/tools
+      - mkdir -p /root/.terraform.d/plugin-cache
+      - export TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache
+      - |
+        if [ ! -f /tmp/tools/terraform ]; then
+          echo "Downloading terraform..."
+          cd /tmp/tools
+          aws s3 cp s3://${TF_SOURCE} terraform.zip
+          unzip -o terraform.zip
+          chmod +x terraform
+        fi
+      - |
+        if [ ! -f /tmp/tools/tflint ]; then
+          echo "Downloading tflint..."
+          cd /tmp/tools
+          aws s3 cp s3://${TFLINT_SOURCE} tflint.zip
+          unzip -o tflint.zip
+          chmod +x tflint
+        fi
+      - sudo ln -sf /tmp/tools/terraform /usr/local/bin/terraform
+      - sudo ln -sf /tmp/tools/tflint /usr/local/bin/tflint
 
   build:
     commands:   
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
-      - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
+      - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -no-color
       - terraform validate
       - tflint --init
       - tflint
 
   post_build:
     commands:
-      - rm /usr/bin/terraform.zip
-      - rm /usr/bin/tflint.zip
       - echo "terraform validate completed on `date`"
       - echo "tflint completed on `date`"

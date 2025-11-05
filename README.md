@@ -153,6 +153,39 @@ module "tf_infra_pipeline" {
 
 If you don't provide VPC configuration, CodeBuild instances will run in AWS-managed infrastructure with public internet access (default behavior).
 
+## Performance Optimizations
+
+This module includes several performance optimizations to reduce build times:
+
+### Caching
+The buildspec files are configured to cache:
+- **Terraform provider plugins** (`/root/.terraform.d/plugin-cache/`) - Avoids re-downloading providers on each build
+- **Downloaded tools** (`/tmp/tools/`) - Caches terraform, tflint, and checkov binaries between builds
+- **Python pip packages** (`/root/.cache/pip/`) - Speeds up checkov installations
+
+**Expected benefit**: 20-40 seconds saved per build after the first run by avoiding repeated downloads.
+
+### Smart Tool Downloads
+Tools are only downloaded if they don't already exist in the cache:
+```bash
+if [ ! -f /tmp/tools/terraform ]; then
+  echo "Downloading terraform..."
+  # download logic
+fi
+```
+
+### Optimized Terraform Init
+The `terraform init` command runs without the `-upgrade` flag by default, allowing it to use cached provider plugins instead of checking for updates on every build. This significantly reduces initialization time while still ensuring consistent provider versions through your lock file.
+
+### Configurable Compute Types
+Use the `codebuild_compute_type` variable to allocate appropriate compute resources:
+- `BUILD_GENERAL1_SMALL` (default) - 3 GB RAM, 2 vCPUs - suitable for small projects
+- `BUILD_GENERAL1_MEDIUM` - 7 GB RAM, 4 vCPUs - recommended for most projects
+- `BUILD_GENERAL1_LARGE` - 15 GB RAM, 8 vCPUs - for large, complex infrastructure
+- `BUILD_GENERAL1_2XLARGE` - 144 GB RAM, 72 vCPUs - for very large projects
+
+Higher compute types can significantly reduce build times for resource-intensive operations like large terraform plans and applies.
+
 ## Notes
 
 - Pipeline cannot do renaming (or adding `name`) to itself. Instead create a new instance of the module, apply changes and then remove the old instance. Also note the CodeStar connection note below.

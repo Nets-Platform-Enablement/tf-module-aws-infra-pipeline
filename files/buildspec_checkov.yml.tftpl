@@ -1,12 +1,25 @@
 version: 0.2
+
+cache:
+  paths:
+    - '/root/.cache/pip/**/*'
+    - '/tmp/tools/**/*'
+
 phases:
   install:
     runtime-versions:
        python: latest
     commands:
-      - cd /usr/bin
-      - aws s3 cp s3://${TF_SOURCE} terraform.zip
-      - unzip -o terraform.zip
+      - mkdir -p /tmp/tools
+      - |
+        if [ ! -f /tmp/tools/terraform ]; then
+          echo "Downloading terraform..."
+          cd /tmp/tools
+          aws s3 cp s3://${TF_SOURCE} terraform.zip
+          unzip -o terraform.zip
+          chmod +x terraform
+        fi
+      - sudo ln -sf /tmp/tools/terraform /usr/local/bin/terraform
       - pip3 install --upgrade pip
       - pip3 install checkov%{ if !LATEST_CHECKOV }==${CHECKOV_VERSION}%{ endif }
   build:
@@ -20,5 +33,4 @@ phases:
       %{ endif }
   post_build:
     commands:
-      - rm /usr/bin/terraform.zip
       - echo "Checkov test is completed on `date`"

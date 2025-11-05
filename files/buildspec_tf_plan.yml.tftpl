@@ -1,17 +1,31 @@
 version: 0.2
 
+cache:
+  paths:
+    - '/root/.terraform.d/plugin-cache/**/*'
+    - '/tmp/tools/**/*'
+
 phases:
 
   install:
     commands:
-      - cd /usr/bin
-      - aws s3 cp s3://${TF_SOURCE} terraform.zip
-      - unzip -o terraform.zip
+      - mkdir -p /tmp/tools
+      - mkdir -p /root/.terraform.d/plugin-cache
+      - export TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache
+      - |
+        if [ ! -f /tmp/tools/terraform ]; then
+          echo "Downloading terraform..."
+          cd /tmp/tools
+          aws s3 cp s3://${TF_SOURCE} terraform.zip
+          unzip -o terraform.zip
+          chmod +x terraform
+        fi
+      - sudo ln -sf /tmp/tools/terraform /usr/local/bin/terraform
 
   build:
     commands:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
-      - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
+      - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -no-color
       - terraform validate
       #- echo "Current Terraform State on `date`"
       #- terraform show
