@@ -195,6 +195,7 @@ variable "enable_custom_codebuild_image" {
 
 variable "custom_codebuild_image_uri" {
   type        = string
+  nullable    = false
   default     = ""
   description = "Custom CodeBuild image URI to use in optimized pipeline mode when enable_custom_codebuild_image is true"
   sensitive   = false
