@@ -190,6 +190,7 @@ variable "codebuild_image_id" {
 
 variable "enable_custom_codebuild_image" {
   type        = bool
+  nullable    = false
   default     = false
   description = "Whether or not to use a custom CodeBuild image in optimized pipeline mode"
   sensitive   = false
