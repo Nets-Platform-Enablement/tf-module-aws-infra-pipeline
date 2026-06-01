@@ -51,9 +51,11 @@ variable "require_manual_approval" {
 
 variable "pipeline_design" {
   type        = string
+  nullable    = false
   description = "Pipeline design to use. 'legacy' preserves the v2 pipeline shape, 'optimized' enables the v3 optimized pipeline design."
   default     = "legacy"
   sensitive   = false
+
 
   validation {
     condition     = contains(["legacy", "optimized"], var.pipeline_design)
