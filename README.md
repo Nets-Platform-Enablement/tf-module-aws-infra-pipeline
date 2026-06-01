@@ -198,8 +198,7 @@ module "tf_infra_pipeline" {
 }
 ```
 
-When `enable_custom_codebuild_image = true` and `custom_codebuild_image_uri = ""`, the optimized pipeline adds a prepare stage that builds a CodeBuild runtime image and pushes it to ECR before validate/plan/apply runs. The image tag is derived from the configured Terraform, tflint, and Checkov versions, so changing a tool version creates a new deterministic image tag.
-
+When `enable_custom_codebuild_image = true` and `custom_codebuild_image_uri = ""`, the optimized pipeline adds a prepare stage that builds a CodeBuild runtime image and pushes it to ECR before validate/plan/apply runs. The image tag is derived from the configured Terraform, tflint, and Checkov versions; for deterministic tags, pin explicit versions (avoid `"latest"`).
 If you already manage your own CodeBuild image, provide it directly:
 
 ```hcl
