@@ -79,11 +79,11 @@ resource "aws_cloudwatch_event_rule" "failed_builds" {
         "FAILED",
         "STOPPED",
       ],
-      "project-name" : [
+      "project-name" : concat([
         aws_codebuild_project.tflint.name,
         aws_codebuild_project.tf_plan.name,
         aws_codebuild_project.tf_apply.name,
-      ]
+      ], aws_codebuild_project.validate_plan[*].name)
     }
   })
   tags = local.tags

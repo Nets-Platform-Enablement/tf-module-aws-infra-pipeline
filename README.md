@@ -28,8 +28,10 @@ module "tf_infra_pipeline" {
   branch_name           = "staging"
   environment           = "preprod"
   require_manual_approval = true
+  pipeline_design       = "optimized"
   enable_checkov        = true
   require_checkov_pass  = true
+  enable_custom_codebuild_image = true
   terraform_version     = "1.9.8"
   tflint_version        = "0.53.0"
   checkov_version       = "3.2.281"
@@ -72,12 +74,16 @@ data "aws_dynamodb_table" "tf_state" {
 | tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state (optional) | string | "" | Leave empty if not using DynamoDB for state locking |
 | aws_region | AWS region to deploy pipeline to | string | `eu-central-1` |  |
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
+| pipeline_design | Pipeline design to use | string | `legacy` | `legacy` preserves the v2 pipeline shape for in-place upgrades. `optimized` enables the v3 optimized pipeline design |
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
 | tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
 | terraform_version | The version of Terraform to use | string | "latest" | Either semantic version number or "latest" |
 | tflint_version | The version of tflint to use | string | "latest" | Either semantic version number or "latest" |
 | checkov_version | The version of checkov to use | string | "latest" | Either semantic version number or "latest" |
 | codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
+| enable_custom_codebuild_image | Whether to use a custom CodeBuild image in optimized pipeline mode | bool | false | If `custom_codebuild_image_uri` is empty, the module creates and updates a managed ECR image before running validate/plan/apply |
+| custom_codebuild_image_uri | Existing custom CodeBuild image URI to use in optimized pipeline mode | string | "" | Leave empty to let the module build a managed ECR image |
+| custom_codebuild_image_scan_on_push | Whether managed ECR images are scanned on push | bool | true | Only applies when the module creates the managed ECR image |
 | vpc_id | VPC ID where CodeBuild projects will run (optional) | string | "" | If provided, CodeBuild instances will run inside the VPC in private networks |
 | subnet_ids | List of subnet IDs for CodeBuild projects (optional) | list(string) | [] | Use private subnets for security. Required if vpc_id is provided |
 | security_group_ids | List of security group IDs for CodeBuild projects (optional) | list(string) | [] | If not provided, a default security group with egress-only rules will be created |
@@ -152,6 +158,60 @@ module "tf_infra_pipeline" {
 
 If you don't provide VPC configuration, CodeBuild instances will run in AWS-managed infrastructure with public internet access (default behavior).
 
+## v3 Pipeline Design and In-Place Upgrade
+
+Version 3 introduces an optimized pipeline design, but keeps the legacy v2 pipeline shape as the default. This lets existing users update the module version in place first and opt into the new design later.
+
+Recommended upgrade path:
+
+1. Update the module source/ref to v3 and leave `pipeline_design` unset, or set `pipeline_design = "legacy"` explicitly.
+2. Run `terraform plan` and confirm the existing pipeline remains on the legacy design.
+3. In a separate change, set `pipeline_design = "optimized"` after reviewing the planned resource changes.
+
+Legacy mode preserves the current behavior:
+- Separate CodeBuild projects for `tflint`, optional `checkov`, `terraform plan`, and `terraform apply`
+- Existing S3 package download flow for Terraform and tflint
+- Existing manual approval and auto-approve behavior
+
+Optimized mode changes the pipeline shape:
+- Runs `terraform init` once before approval
+- Runs `terraform validate`, `tflint`, and optional `checkov` in a consolidated `validate-plan` CodeBuild project
+- Produces both `thePlan.tfp` and a readable `plan.txt` artifact
+- Keeps manual approval tied to the saved plan artifact
+- Applies the exact saved plan artifact in the deploy stage
+
+To enable optimized mode with a module-managed ECR image:
+
+```hcl
+module "tf_infra_pipeline" {
+  source = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v3.0.0"
+
+  # ... other required variables ...
+
+  pipeline_design               = "optimized"
+  enable_checkov                = true
+  require_checkov_pass          = true
+  enable_custom_codebuild_image = true
+  terraform_version             = "1.9.8"
+  tflint_version                = "0.53.0"
+  checkov_version               = "3.2.281"
+}
+```
+
+When `enable_custom_codebuild_image = true` and `custom_codebuild_image_uri = ""`, the optimized pipeline adds a prepare stage that builds a CodeBuild runtime image and pushes it to ECR before validate/plan/apply runs. The image tag is derived from the configured Terraform, tflint, and Checkov versions, so changing a tool version creates a new deterministic image tag.
+
+If you already manage your own CodeBuild image, provide it directly:
+
+```hcl
+pipeline_design               = "optimized"
+enable_custom_codebuild_image = true
+custom_codebuild_image_uri    = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/codebuild-terraform:tf-1-9-8-tflint-v0-53-0-checkov-3-2-281"
+```
+
+Rollback options:
+- Set `pipeline_design = "legacy"` to return to the legacy pipeline shape
+- Keep `pipeline_design = "optimized"` and pin `custom_codebuild_image_uri` to a previous known-good image tag
+
 ## Notes
 
 - Pipeline cannot do renaming (or adding `name`) to itself. Instead create a new instance of the module, apply changes and then remove the old instance. Also note the CodeStar connection note below.
@@ -176,8 +236,17 @@ If you don't provide VPC configuration, CodeBuild instances will run in AWS-mana
 | iam_role_id         | ID for the IAM role used by CodeBuild                    |
 | artifact_bucket_id  | ID of the bucket terraform plans are stored in           |
 | codebuild_role_arn  | ARN for the CodeBuild IAM role                           |
+| codebuild_image_repository_url | Repository URL for the managed custom CodeBuild image, when enabled |
+| codebuild_runtime_image | CodeBuild runtime image selected by the module |
 
 ## Releases
+
+### v.3.0.0 Optimized pipeline design
+- New setting: `pipeline_design`, defaulting to `legacy` for in-place upgrades from v2
+- New optimized pipeline design with consolidated validate/lint/security/plan CodeBuild project
+- New optional managed ECR CodeBuild image for Terraform, tflint and Checkov
+- Optimized mode keeps approval tied to the saved Terraform plan artifact
+- Legacy mode preserves the existing v2 pipeline shape and package download behavior
 
 ### v.2.2.2
 - New output: `codebuild_role_arn` (ARN for the CodeBuild IAM role)

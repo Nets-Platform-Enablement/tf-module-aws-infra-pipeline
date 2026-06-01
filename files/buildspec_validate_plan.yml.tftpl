@@ -1,0 +1,70 @@
+version: 0.2
+
+phases:
+
+  install:
+    commands:
+%{ if !CUSTOM_IMAGE }
+      - cd /usr/bin
+      - aws s3 cp s3://${TF_SOURCE} terraform.zip
+      - unzip -o terraform.zip
+      - aws s3 cp s3://${TFLINT_SOURCE} tflint.zip
+      - unzip -o tflint.zip -d /tmp/tflint
+      - sudo mkdir -p /usr/local/bin
+      - sudo install -c -v /tmp/tflint/tflint /usr/local/bin
+%{ if ENABLE_CHECKOV }
+      - pip3 install --upgrade pip
+      - pip3 install checkov%{ if !LATEST_CHECKOV }==${CHECKOV_VERSION}%{ endif }
+%{ endif }
+%{ else }
+      - terraform version
+      - tflint --version
+%{ if ENABLE_CHECKOV }
+      - checkov --version
+%{ endif }
+%{ endif }
+
+  build:
+    commands:
+      - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
+      - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
+      - |
+        check_failed=0
+        terraform validate -no-color &
+        validate_pid=$!
+        (tflint --init && tflint) &
+        tflint_pid=$!
+%{ if ENABLE_CHECKOV }
+        (export CHECKOV_ENABLE_MODULES_FOREACH_HANDLING=false; checkov --directory ./ %{ if SOFTFAIL }--soft-fail%{ endif }) &
+        checkov_pid=$!
+%{ endif }
+        wait "$validate_pid" || check_failed=1
+        wait "$tflint_pid" || check_failed=1
+%{ if ENABLE_CHECKOV }
+        wait "$checkov_pid" || check_failed=1
+%{ endif }
+        if [ "$check_failed" -ne 0 ]; then exit 1; fi
+      - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
+      - terraform plan --var-file $VAR_FILE -no-color -out thePlan.tfp
+      - terraform show -no-color thePlan.tfp > plan.txt
+      - echo "Terraform plan saved to thePlan.tfp and plan.txt"
+
+  post_build:
+    commands:
+      - echo "Validate and plan completed on `date`"
+%{ if !CUSTOM_IMAGE }
+      - rm /usr/bin/terraform.zip
+      - rm /usr/bin/tflint.zip
+%{ endif }
+
+artifacts:
+  files:
+    - thePlan.tfp
+    - plan.txt
+%{ if EXTRA_FILES != [""] }
+%{ for file in EXTRA_FILES ~}
+    - ${file}
+%{ endfor ~}
+%{ endif }
+  name: TerraformPlan
+  base-directory: ${DIRECTORY}

@@ -4,9 +4,13 @@ phases:
 
   install:
     commands:
+%{ if !CUSTOM_IMAGE }
       - cd /usr/bin
       - aws s3 cp s3://${TF_SOURCE} terraform.zip
       - unzip -o terraform.zip
+%{ else }
+      - terraform version
+%{ endif }
 
   build:
     commands:
@@ -18,4 +22,6 @@ phases:
   post_build:
     commands:
       - echo "terraform apply completed on `date`"
+%{ if !CUSTOM_IMAGE }
       - rm /usr/bin/terraform.zip
+%{ endif }

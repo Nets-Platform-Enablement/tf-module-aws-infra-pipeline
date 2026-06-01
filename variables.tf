@@ -49,6 +49,18 @@ variable "require_manual_approval" {
   sensitive   = false
 }
 
+variable "pipeline_design" {
+  type        = string
+  description = "Pipeline design to use. 'legacy' preserves the v2 pipeline shape, 'optimized' enables the v3 optimized pipeline design."
+  default     = "legacy"
+  sensitive   = false
+
+  validation {
+    condition     = contains(["legacy", "optimized"], var.pipeline_design)
+    error_message = "The pipeline_design value must be either 'legacy' or 'optimized'."
+  }
+}
+
 variable "enable_checkov" {
   type        = bool
   description = "If TRUE, pipeline will run checkov against codebase"
@@ -172,6 +184,27 @@ variable "codebuild_image_id" {
   type        = string
   default     = "aws/codebuild/standard:7.0"
   description = "ID of the CodeBuild instance image"
+}
+
+variable "enable_custom_codebuild_image" {
+  type        = bool
+  default     = false
+  description = "Whether or not to use a custom CodeBuild image in optimized pipeline mode"
+  sensitive   = false
+}
+
+variable "custom_codebuild_image_uri" {
+  type        = string
+  default     = ""
+  description = "Custom CodeBuild image URI to use in optimized pipeline mode when enable_custom_codebuild_image is true"
+  sensitive   = false
+}
+
+variable "custom_codebuild_image_scan_on_push" {
+  type        = bool
+  default     = true
+  description = "Whether or not the managed custom CodeBuild ECR repository scans images on push"
+  sensitive   = false
 }
 
 variable "vpc_id" {

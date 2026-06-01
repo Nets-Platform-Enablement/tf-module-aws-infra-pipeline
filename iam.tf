@@ -85,12 +85,12 @@ resource "aws_iam_role_policy" "codepipeline" {
             "codebuild:StopBuild",
             "codebuild:BatchGetBuilds"
           ],
-          "Resource" : [
+          "Resource" : concat([
             aws_codebuild_project.tflint.arn,
             aws_codebuild_project.checkov.arn,
             aws_codebuild_project.tf_plan.arn,
             aws_codebuild_project.tf_apply.arn
-          ]
+          ], aws_codebuild_project.validate_plan[*].arn, aws_codebuild_project.codebuild_image[*].arn)
         },
         {
           "Effect" : "Allow",
@@ -282,6 +282,29 @@ resource "aws_iam_role_policy" "codebuild" {
             "ec2:DescribeVpcs"
           ],
           "Resource" : "*"
+        }] : [],
+        local.use_custom_codebuild_image ? [{
+          "Effect" : "Allow",
+          "Action" : [
+            "ecr:GetAuthorizationToken",
+            "ecr:BatchCheckLayerAvailability",
+            "ecr:GetDownloadUrlForLayer",
+            "ecr:BatchGetImage"
+          ],
+          "Resource" : "*"
+        }] : [],
+        local.manage_custom_codebuild_image ? [{
+          "Effect" : "Allow",
+          "Action" : [
+            "ecr:BatchCheckLayerAvailability",
+            "ecr:CompleteLayerUpload",
+            "ecr:DescribeImages",
+            "ecr:DescribeRepositories",
+            "ecr:InitiateLayerUpload",
+            "ecr:PutImage",
+            "ecr:UploadLayerPart"
+          ],
+          "Resource" : aws_ecr_repository.codebuild_image[0].arn
         }] : [],
         [{
           "Effect" : "Allow",
