@@ -134,11 +134,11 @@ resource "aws_iam_role_policy_attachments_exclusive" "codebuild" {
 }
 
 resource "aws_iam_role_policy" "aws_managed" {
-  for_each = tomap(data.aws_iam_policy.managed)
+  for_each = var.managed_policies
   name     = "CodebuildRolePolicy-${each.key}"
   role     = aws_iam_role.codebuild.id
 
-  policy = each.value.policy
+  policy = data.aws_iam_policy.managed[each.key].policy
 }
 
 resource "aws_iam_role_policy" "codebuild" {
