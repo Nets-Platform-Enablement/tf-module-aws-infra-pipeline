@@ -10,7 +10,11 @@ output "sns_topic_arn" {
 
 output "codepipeline_arn" {
   description = "ARN of the CodePipeline"
-  value       = var.require_manual_approval ? aws_codepipeline.terraform[0].arn : aws_codepipeline.terraform_without_approval[0].arn
+  value = var.require_manual_approval ? (
+    local.use_optimized_pipeline ? aws_codepipeline.terraform_optimized[0].arn : aws_codepipeline.terraform[0].arn
+    ) : (
+    local.use_optimized_pipeline ? aws_codepipeline.terraform_without_approval_optimized[0].arn : aws_codepipeline.terraform_without_approval[0].arn
+  )
 }
 
 output "iam_role_arn" {
@@ -31,4 +35,14 @@ output "artifact_bucket_id" {
 output "codebuild_role_arn" {
   description = "ARN for the CodeBuild IAM role"
   value       = aws_iam_role.codebuild.arn
+}
+
+output "codebuild_image_repository_url" {
+  description = "Repository URL for the managed custom CodeBuild image"
+  value       = local.manage_custom_codebuild_image ? aws_ecr_repository.codebuild_image[0].repository_url : null
+}
+
+output "codebuild_runtime_image" {
+  description = "CodeBuild runtime image selected by the module"
+  value       = local.codebuild_runtime_image
 }
