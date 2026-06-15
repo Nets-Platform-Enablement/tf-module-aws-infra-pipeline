@@ -303,7 +303,7 @@ resource "aws_codebuild_project" "validate_plan" {
         TF_SOURCE       = local.terraform_package,
         TFLINT_SOURCE   = local.tflint_package,
         DIRECTORY       = var.directory,
-        EXTRA_FILES     = compact(tolist(var.extra_build_artifacts)),
+        EXTRA_FILES     = var.extra_build_artifacts == null ? [] : compact(tolist(var.extra_build_artifacts)),
         BACKENDFILE     = var.tfbackend_file,
         ENABLE_CHECKOV  = var.enable_checkov,
         CHECKOV_VERSION = var.checkov_version,
