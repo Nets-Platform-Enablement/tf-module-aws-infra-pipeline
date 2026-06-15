@@ -250,7 +250,7 @@ resource "aws_codebuild_project" "tf_plan" {
       {
         TF_SOURCE   = local.terraform_package,
         DIRECTORY   = var.directory,
-        EXTRA_FILES = compact(tolist(var.extra_build_artifacts)),
+        EXTRA_FILES = var.extra_build_artifacts == null ? [] : compact(tolist(var.extra_build_artifacts)),
         BACKENDFILE = var.tfbackend_file
       }
     )
