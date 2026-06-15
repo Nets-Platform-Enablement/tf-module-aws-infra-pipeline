@@ -29,24 +29,47 @@ phases:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
       - |
-        check_failed=0
-        terraform validate -no-color &
-        validate_pid=$!
-        (tflint --init && tflint) &
-        tflint_pid=$!
+        fail_build() {
+          reason="$1"
+          echo ""
+          echo "============================================================"
+          echo "VALIDATE-PLAN FAILED: $reason"
+          echo "No Terraform plan was generated. Fix the failing check above and rerun the pipeline."
+          echo "============================================================"
+          printf '%s\n' "VALIDATE-PLAN FAILED: $reason" "No Terraform plan was generated." "Fix the failing check above and rerun the pipeline." > plan.txt
+          : > thePlan.tfp
+          exit 1
+        }
+
+        echo "============================================================"
+        echo "Running terraform validate"
+        echo "============================================================"
+        terraform validate -no-color || fail_build "terraform validate failed"
+
+        echo "============================================================"
+        echo "Running tflint"
+        echo "============================================================"
+        tflint --init || fail_build "tflint plugin initialization failed"
+        tflint || fail_build "tflint found issues"
 %{ if ENABLE_CHECKOV }
-        (export CHECKOV_ENABLE_MODULES_FOREACH_HANDLING=false; checkov --directory ./ %{ if SOFTFAIL }--soft-fail%{ endif }) &
-        checkov_pid=$!
+        echo "============================================================"
+        echo "Running checkov"
+        echo "============================================================"
+        export CHECKOV_ENABLE_MODULES_FOREACH_HANDLING=false
+        checkov --directory ./ %{ if SOFTFAIL }--soft-fail%{ endif } || fail_build "checkov found policy violations"
 %{ endif }
-        wait "$validate_pid" || check_failed=1
-        wait "$tflint_pid" || check_failed=1
-%{ if ENABLE_CHECKOV }
-        wait "$checkov_pid" || check_failed=1
-%{ endif }
-        if [ "$check_failed" -ne 0 ]; then exit 1; fi
       - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
-      - terraform plan --var-file $VAR_FILE -no-color -out thePlan.tfp
-      - terraform show -no-color thePlan.tfp > plan.txt
+      - |
+        if ! terraform plan --var-file $VAR_FILE -no-color -out thePlan.tfp; then
+          echo "Terraform plan failed. No valid Terraform plan was generated." > plan.txt
+          : > thePlan.tfp
+          exit 1
+        fi
+      - |
+        if ! terraform show -no-color thePlan.tfp > plan.txt; then
+          echo "Terraform plan was created, but rendering plan.txt failed." > plan.txt
+          exit 1
+        fi
       - echo "Terraform plan saved to thePlan.tfp and plan.txt"
 
   post_build:
@@ -61,7 +84,7 @@ artifacts:
   files:
     - thePlan.tfp
     - plan.txt
-%{ if EXTRA_FILES != [""] }
+%{ if length(EXTRA_FILES) > 0 }
 %{ for file in EXTRA_FILES ~}
     - ${file}
 %{ endfor ~}
