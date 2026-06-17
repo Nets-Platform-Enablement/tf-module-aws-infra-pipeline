@@ -60,16 +60,16 @@ phases:
 %{ endif }
       - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
       - |
-if [ -z "$${VAR_FILE:-}" ]; then
-  echo "Terraform plan failed: VAR_FILE is empty (expected path to a .tfvars file)." > plan.txt
-  : > thePlan.tfp
-  exit 1
-fi
-if ! terraform plan --var-file "$VAR_FILE" -no-color -out thePlan.tfp; then
-  echo "Terraform plan failed. No valid Terraform plan was generated." > plan.txt
-  : > thePlan.tfp
-  exit 1
-fi
+        if [ -z "$${VAR_FILE:-}" ]; then
+          echo "Terraform plan failed: VAR_FILE is empty (expected path to a .tfvars file)." > plan.txt
+          : > thePlan.tfp
+          exit 1
+        fi
+        if ! terraform plan --var-file "$VAR_FILE" -no-color -out thePlan.tfp; then
+          echo "Terraform plan failed. No valid Terraform plan was generated." > plan.txt
+          : > thePlan.tfp
+          exit 1
+        fi
       - |
         if ! terraform show -no-color thePlan.tfp > plan.txt; then
           echo "Terraform plan was created, but rendering plan.txt failed." > plan.txt
