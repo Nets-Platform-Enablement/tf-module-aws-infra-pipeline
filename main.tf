@@ -5,6 +5,14 @@ terraform {
       source  = "hashicorp/aws"
       version = ">=5.72.0"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = ">=3.5.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">=3.2.4"
+    }
   }
 }
 
@@ -27,17 +35,7 @@ locals {
     local.use_optimized_pipeline &&
     var.enable_custom_codebuild_image
   )
-  manage_custom_codebuild_image = local.use_custom_codebuild_image && var.custom_codebuild_image_uri == ""
-  custom_codebuild_image_tag = lower(join("-", [
-    "tf",
-    replace(local.terraform_version, ".", "-"),
-    "tflint",
-    replace(local.tflint_version, ".", "-"),
-    "checkov",
-    replace(var.checkov_version, ".", "-")
-  ]))
-  managed_codebuild_image_uri = local.manage_custom_codebuild_image ? "${aws_ecr_repository.codebuild_image[0].repository_url}:${local.custom_codebuild_image_tag}" : ""
-  codebuild_runtime_image     = local.use_custom_codebuild_image ? coalesce(var.custom_codebuild_image_uri, local.managed_codebuild_image_uri) : var.codebuild_image_id
+  codebuild_runtime_image = local.use_custom_codebuild_image ? var.custom_codebuild_image_uri : var.codebuild_image_id
 }
 
 data "aws_caller_identity" "current" {}

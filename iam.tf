@@ -90,12 +90,12 @@ resource "aws_iam_role_policy" "codepipeline" {
             aws_codebuild_project.checkov.arn,
             aws_codebuild_project.tf_plan.arn,
             aws_codebuild_project.tf_apply.arn
-          ], aws_codebuild_project.validate_plan[*].arn, aws_codebuild_project.codebuild_image[*].arn)
+          ], aws_codebuild_project.validate_plan[*].arn)
         },
         {
           "Effect" : "Allow",
           "Action" : "codestar-connections:UseConnection",
-          "Resource" : "${aws_codestarconnections_connection.this.arn}"
+          "Resource" : aws_codestarconnections_connection.this.arn
         }
       ]
     }
@@ -292,19 +292,6 @@ resource "aws_iam_role_policy" "codebuild" {
             "ecr:BatchGetImage"
           ],
           "Resource" : "*"
-        }] : [],
-        local.manage_custom_codebuild_image ? [{
-          "Effect" : "Allow",
-          "Action" : [
-            "ecr:BatchCheckLayerAvailability",
-            "ecr:CompleteLayerUpload",
-            "ecr:DescribeImages",
-            "ecr:DescribeRepositories",
-            "ecr:InitiateLayerUpload",
-            "ecr:PutImage",
-            "ecr:UploadLayerPart"
-          ],
-          "Resource" : aws_ecr_repository.codebuild_image[0].arn
         }] : [],
         [{
           "Effect" : "Allow",

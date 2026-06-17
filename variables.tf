@@ -204,13 +204,6 @@ variable "custom_codebuild_image_uri" {
   sensitive   = false
 }
 
-variable "custom_codebuild_image_scan_on_push" {
-  type        = bool
-  default     = true
-  description = "Whether or not the managed custom CodeBuild ECR repository scans images on push"
-  sensitive   = false
-}
-
 variable "vpc_id" {
   type        = string
   description = "VPC ID where CodeBuild projects will run (optional). If provided, CodeBuild will run inside the VPC"

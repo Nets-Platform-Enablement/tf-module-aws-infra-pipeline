@@ -32,6 +32,7 @@ module "tf_infra_pipeline" {
   enable_checkov        = true
   require_checkov_pass  = true
   enable_custom_codebuild_image = true
+  custom_codebuild_image_uri    = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/codebuild-terraform:tf-1-9-8-tflint-v0-53-0-checkov-3-2-281"
   terraform_version     = "1.9.8"
   tflint_version        = "0.53.0"
   checkov_version       = "3.2.281"
@@ -81,9 +82,8 @@ data "aws_dynamodb_table" "tf_state" {
 | tflint_version | The version of tflint to use | string | "latest" | Either semantic version number or "latest" |
 | checkov_version | The version of checkov to use | string | "latest" | Either semantic version number or "latest" |
 | codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
-| enable_custom_codebuild_image | Whether to use a custom CodeBuild image in optimized pipeline mode | bool | false | If `custom_codebuild_image_uri` is empty, the module creates and updates a managed ECR image before running validate/plan/apply |
-| custom_codebuild_image_uri | Existing custom CodeBuild image URI to use in optimized pipeline mode | string | "" | Leave empty to let the module build a managed ECR image |
-| custom_codebuild_image_scan_on_push | Whether managed ECR images are scanned on push | bool | true | Only applies when the module creates the managed ECR image |
+| enable_custom_codebuild_image | Whether to use a custom CodeBuild image in optimized pipeline mode | bool | false | Requires `custom_codebuild_image_uri` to point to an externally managed image |
+| custom_codebuild_image_uri | Existing custom CodeBuild image URI to use in optimized pipeline mode | string | "" | Required when `enable_custom_codebuild_image = true` |
 | vpc_id | VPC ID where CodeBuild projects will run (optional) | string | "" | If provided, CodeBuild instances will run inside the VPC in private networks |
 | subnet_ids | List of subnet IDs for CodeBuild projects (optional) | list(string) | [] | Use private subnets for security. Required if vpc_id is provided |
 | security_group_ids | List of security group IDs for CodeBuild projects (optional) | list(string) | [] | If not provided, a default security group with egress-only rules will be created |
@@ -180,7 +180,7 @@ Optimized mode changes the pipeline shape:
 - Keeps manual approval tied to the saved plan artifact
 - Applies the exact saved plan artifact in the deploy stage
 
-To enable optimized mode with a module-managed ECR image:
+To enable optimized mode with a custom CodeBuild image:
 
 ```hcl
 module "tf_infra_pipeline" {
@@ -192,14 +192,14 @@ module "tf_infra_pipeline" {
   enable_checkov                = true
   require_checkov_pass          = true
   enable_custom_codebuild_image = true
+  custom_codebuild_image_uri    = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/codebuild-terraform:tf-1-9-8-tflint-v0-53-0-checkov-3-2-281"
   terraform_version             = "1.9.8"
   tflint_version                = "0.53.0"
   checkov_version               = "3.2.281"
 }
 ```
 
-When `enable_custom_codebuild_image = true` and `custom_codebuild_image_uri = ""`, the optimized pipeline adds a prepare stage that builds a CodeBuild runtime image and pushes it to ECR before validate/plan/apply runs. The image tag is derived from the configured Terraform, tflint, and Checkov versions; for deterministic tags, pin explicit versions (avoid `"latest"`).
-If you already manage your own CodeBuild image, provide it directly:
+When `enable_custom_codebuild_image = true`, `custom_codebuild_image_uri` must point to an image that is built and published outside this module. This avoids the pipeline having to build its own runtime image before it can run validate/plan/apply.
 
 ```hcl
 pipeline_design               = "optimized"
@@ -235,7 +235,7 @@ Rollback options:
 | iam_role_id         | ID for the IAM role used by CodeBuild                    |
 | artifact_bucket_id  | ID of the bucket terraform plans are stored in           |
 | codebuild_role_arn  | ARN for the CodeBuild IAM role                           |
-| codebuild_image_repository_url | Repository URL for the managed custom CodeBuild image, when enabled |
+| codebuild_image_repository_url | Deprecated. Always `null`; the module no longer creates a managed custom CodeBuild image repository |
 | codebuild_runtime_image | CodeBuild runtime image selected by the module |
 
 ## Releases
@@ -243,7 +243,7 @@ Rollback options:
 ### v.3.0.0 Optimized pipeline design
 - New setting: `pipeline_design`, defaulting to `legacy` for in-place upgrades from v2
 - New optimized pipeline design with consolidated validate/lint/security/plan CodeBuild project
-- New optional managed ECR CodeBuild image for Terraform, tflint and Checkov
+- New optional custom CodeBuild image support for Terraform, tflint and Checkov
 - Optimized mode keeps approval tied to the saved Terraform plan artifact
 - Legacy mode preserves the existing v2 pipeline shape and package download behavior
 

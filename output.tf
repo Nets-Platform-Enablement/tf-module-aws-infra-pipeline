@@ -38,8 +38,8 @@ output "codebuild_role_arn" {
 }
 
 output "codebuild_image_repository_url" {
-  description = "Repository URL for the managed custom CodeBuild image"
-  value       = local.manage_custom_codebuild_image ? aws_ecr_repository.codebuild_image[0].repository_url : null
+  description = "Deprecated. The module no longer creates a managed custom CodeBuild image repository."
+  value       = null
 }
 
 output "codebuild_runtime_image" {
