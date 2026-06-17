@@ -60,7 +60,7 @@ phases:
 %{ endif }
       - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
       - |
-if [ -z "${VAR_FILE:-}" ]; then
+if [ -z "$${VAR_FILE:-}" ]; then
   echo "Terraform plan failed: VAR_FILE is empty (expected path to a .tfvars file)." > plan.txt
   : > thePlan.tfp
   exit 1

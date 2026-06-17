@@ -47,72 +47,6 @@ resource "aws_cloudwatch_log_group" "codebuild" {
   retention_in_days = var.logs_retention_time
 }
 
-resource "aws_codebuild_project" "codebuild_image" {
-  count          = local.manage_custom_codebuild_image ? 1 : 0
-  name           = "${local.name}-codebuild-image"
-  description    = "Managed using Terraform"
-  service_role   = aws_iam_role.codebuild.arn
-  encryption_key = aws_kms_key.codebuild.arn
-  tags           = local.tags
-
-  artifacts {
-    type = "CODEPIPELINE"
-  }
-
-  environment {
-    compute_type    = "BUILD_GENERAL1_SMALL"
-    image           = var.codebuild_image_id
-    privileged_mode = true
-    type            = "LINUX_CONTAINER"
-
-    environment_variable {
-      name  = "ECR_REPOSITORY_URI"
-      value = aws_ecr_repository.codebuild_image[0].repository_url
-    }
-
-    environment_variable {
-      name  = "IMAGE_TAG"
-      value = local.custom_codebuild_image_tag
-    }
-
-    environment_variable {
-      name  = "TERRAFORM_VERSION"
-      value = local.terraform_version
-    }
-
-    environment_variable {
-      name  = "TFLINT_VERSION"
-      value = local.tflint_version
-    }
-
-    environment_variable {
-      name  = "CHECKOV_VERSION"
-      value = var.checkov_version
-    }
-  }
-
-  dynamic "vpc_config" {
-    for_each = var.vpc_id != "" ? [1] : []
-    content {
-      vpc_id             = var.vpc_id
-      subnets            = var.subnet_ids
-      security_group_ids = local.codebuild_security_group_ids
-    }
-  }
-
-  logs_config {
-    cloudwatch_logs {
-      group_name  = aws_cloudwatch_log_group.codebuild.name
-      stream_name = "codebuild-image"
-    }
-  }
-
-  source {
-    type      = "CODEPIPELINE"
-    buildspec = file("${path.module}/files/buildspec_codebuild_image.yml")
-  }
-}
-
 #Validate terraform
 resource "aws_codebuild_project" "tflint" {
   name           = "${local.name}-tflint"
@@ -313,6 +247,7 @@ resource "aws_codebuild_project" "validate_plan" {
       }
     )
   }
+
 }
 
 resource "aws_codebuild_project" "tf_apply" {

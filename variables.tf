@@ -202,13 +202,18 @@ variable "custom_codebuild_image_uri" {
   default     = ""
   description = "Custom CodeBuild image URI to use in optimized pipeline mode when enable_custom_codebuild_image is true"
   sensitive   = false
-}
 
-variable "custom_codebuild_image_scan_on_push" {
-  type        = bool
-  default     = true
-  description = "Whether or not the managed custom CodeBuild ECR repository scans images on push"
-  sensitive   = false
+  validation {
+    condition = (
+      var.pipeline_design != "optimized" ||
+      !var.enable_custom_codebuild_image ||
+      (
+        var.custom_codebuild_image_uri != "" &&
+        var.custom_codebuild_image_uri == trimspace(var.custom_codebuild_image_uri)
+      )
+    )
+    error_message = "custom_codebuild_image_uri must be set without leading or trailing whitespace when enable_custom_codebuild_image is true in optimized pipeline mode."
+  }
 }
 
 variable "vpc_id" {

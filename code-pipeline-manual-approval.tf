@@ -137,26 +137,6 @@ resource "aws_codepipeline" "terraform_optimized" {
     }
   }
 
-  dynamic "stage" {
-    for_each = local.manage_custom_codebuild_image ? [1] : []
-    content {
-      name = "Prepare-CodeBuild-Image"
-      action {
-        run_order        = 1
-        name             = "codebuild-image"
-        category         = "Build"
-        owner            = "AWS"
-        provider         = "CodeBuild"
-        input_artifacts  = ["CodeWorkspace"]
-        output_artifacts = []
-        version          = "1"
-        configuration = {
-          ProjectName = aws_codebuild_project.codebuild_image[0].name
-        }
-      }
-    }
-  }
-
   stage {
     name = "Validate-And-Plan"
     action {
