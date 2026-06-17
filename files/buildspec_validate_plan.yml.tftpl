@@ -37,6 +37,7 @@ phases:
           echo "No Terraform plan was generated. Fix the failing check above and rerun the pipeline."
           echo "============================================================"
           printf '%s\n' "VALIDATE-PLAN FAILED: $reason" "No Terraform plan was generated." "Fix the failing check above and rerun the pipeline." > plan.txt
+          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: $reason" "No Terraform plan was generated." > validate-plan-summary.txt
           : > thePlan.tfp
           exit 1
         }
@@ -62,24 +63,64 @@ phases:
       - |
         if [ -z "$${VAR_FILE:-}" ]; then
           echo "Terraform plan failed: VAR_FILE is empty (expected path to a .tfvars file)." > plan.txt
+          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: VAR_FILE is empty" "No Terraform plan was generated." > validate-plan-summary.txt
           : > thePlan.tfp
           exit 1
         fi
         if ! terraform plan --var-file "$VAR_FILE" -no-color -out thePlan.tfp; then
           echo "Terraform plan failed. No valid Terraform plan was generated." > plan.txt
+          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: terraform plan failed" "No valid Terraform plan was generated." > validate-plan-summary.txt
           : > thePlan.tfp
           exit 1
         fi
       - |
         if ! terraform show -no-color thePlan.tfp > plan.txt; then
           echo "Terraform plan was created, but rendering plan.txt failed." > plan.txt
+          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: terraform show failed" "Terraform plan was created, but plan.txt could not be rendered." > validate-plan-summary.txt
           exit 1
         fi
+        PLAN_RESULT=$(grep -E '^(No changes\.|Plan: )' plan.txt | tail -n 1 || true)
+        if [ -z "$PLAN_RESULT" ]; then
+          PLAN_RESULT="Plan file generated; no concise Terraform summary line found."
+        fi
+        awk '
+          /^  # / && ($0 ~ / will be / || $0 ~ / must be / || $0 ~ / has moved/) {
+            count++
+            if (count <= 50) {
+              change=$0
+              sub(/^  # /, "", change)
+              print "- " change
+            }
+          }
+          END {
+            if (count == 0) {
+              print "- none"
+            } else if (count > 50) {
+              print "- ... " count " total planned resource changes; showing first 50. See plan.txt for full details."
+            }
+          }
+        ' plan.txt > planned-changes.txt
+        {
+          echo "Validate-plan summary"
+          echo "Status: succeeded"
+          echo "terraform validate: passed"
+          echo "tflint: passed"
+%{ if ENABLE_CHECKOV }
+          echo "checkov: completed%{ if SOFTFAIL } (soft-fail enabled)%{ endif }"
+%{ else }
+          echo "checkov: disabled"
+%{ endif }
+          echo "$PLAN_RESULT"
+          echo "Planned changes:"
+          cat planned-changes.txt
+          echo "Artifacts: thePlan.tfp, plan.txt, validate-plan-summary.txt"
+        } > validate-plan-summary.txt
       - echo "Terraform plan saved to thePlan.tfp and plan.txt"
 
   post_build:
     commands:
       - echo "Validate and plan completed on `date`"
+      - if [ -f validate-plan-summary.txt ]; then cat validate-plan-summary.txt; fi
 %{ if !CUSTOM_IMAGE }
       - rm /usr/bin/terraform.zip
       - rm /usr/bin/tflint.zip
@@ -89,6 +130,7 @@ artifacts:
   files:
     - thePlan.tfp
     - plan.txt
+    - validate-plan-summary.txt
 %{ if length(EXTRA_FILES) > 0 }
 %{ for file in EXTRA_FILES ~}
     - ${file}
