@@ -37,11 +37,6 @@ output "codebuild_role_arn" {
   value       = aws_iam_role.codebuild.arn
 }
 
-output "codebuild_image_repository_url" {
-  description = "Deprecated. The module no longer creates a managed custom CodeBuild image repository."
-  value       = null
-}
-
 output "codebuild_runtime_image" {
   description = "CodeBuild runtime image selected by the module"
   value       = local.codebuild_runtime_image

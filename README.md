@@ -243,7 +243,6 @@ Rollback options:
 | iam_role_id         | ID for the IAM role used by CodeBuild                    |
 | artifact_bucket_id  | ID of the bucket terraform plans are stored in           |
 | codebuild_role_arn  | ARN for the CodeBuild IAM role                           |
-| codebuild_image_repository_url | Deprecated. Always `null`; the module no longer creates a managed custom CodeBuild image repository |
 | codebuild_runtime_image | CodeBuild runtime image selected by the module |
 
 ## Releases
