@@ -248,12 +248,6 @@ resource "aws_codebuild_project" "validate_plan" {
     )
   }
 
-  lifecycle {
-    precondition {
-      condition     = !var.enable_custom_codebuild_image || var.custom_codebuild_image_uri != ""
-      error_message = "custom_codebuild_image_uri must be set when enable_custom_codebuild_image is true in optimized pipeline mode."
-    }
-  }
 }
 
 resource "aws_codebuild_project" "tf_apply" {
