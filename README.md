@@ -4,15 +4,15 @@ Terraform module for defining AWS CodePipeline for applying infrastructure from 
 ## Examples
 
 - Pipeline _without_ manual approval
-```
+```hcl
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v2.2.0"
-  github_repository_id  = "Nets-Platform-Enablement/sample-project"
-  environment           = "dev"
+  source                  = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v3.0.0"
+  github_repository_id    = "Nets-Platform-Enablement/sample-project"
+  environment             = "dev"
   require_manual_approval = false
-  tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn # Optional: only needed if using DynamoDB for state locking
-  variables_file        = "environment/dev.tfvars"
-  tags                  = local.tags
+  tf_state_dynamodb_arn   = data.aws_dynamodb_table.tf_state.arn # Optional: only needed if using DynamoDB for state locking
+  variables_file          = "environment/dev.tfvars"
+  tags                    = local.tags
 }
 data "aws_dynamodb_table" "tf_state" {
   name = "terraform-state-lock-sample-project"
@@ -20,51 +20,59 @@ data "aws_dynamodb_table" "tf_state" {
 ```
 
 - Pipeline with manual approval, failure and success reporting, custom variables file, .tfbackend-file, custom branch-name
-```
+```hcl
 module "tf_infra_pipeline" {
-  source                = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.2.0"
-  name                  = "example-pipeline"
-  github_repository_id  = "Nets-Platform-Enablement/sample-project"
-  branch_name           = "staging"
-  environment           = "preprod"
-  require_manual_approval = true
-  pipeline_design       = "optimized"
-  enable_checkov        = true
-  require_checkov_pass  = true
+  source                        = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v3.0.0"
+  name                          = "example-pipeline"
+  github_repository_id          = "Nets-Platform-Enablement/sample-project"
+  branch_name                   = "staging"
+  environment                   = "preprod"
+  require_manual_approval       = true
+  pipeline_design               = "optimized"
+  enable_checkov                = true
+  require_checkov_pass          = true
   enable_custom_codebuild_image = true
   custom_codebuild_image_uri    = "123456789012.dkr.ecr.eu-central-1.amazonaws.com/codebuild-terraform:tf-1-9-8-tflint-v0-53-0-checkov-3-2-281"
-  terraform_version     = "1.9.8"
-  tflint_version        = "0.53.0"
-  checkov_version       = "3.2.281"
-  tf_state_dynamodb_arn = data.aws_dynamodb_table.tf_state.arn # Optional: only needed if using DynamoDB for state locking
-  variables_file        = "environment/prod.tfvars"
-  codebuild_image_id    = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
-  tfbackend_file        = "environment/prod.s3.tfbackend"
-  emails                = [ "first.last@nexigroup.com", "jane.doe@nexigroup.com" ]
-  failure_notifications = "ENABLED"
-  success_notifications = "ENABLED"
-  logs_retention_time   = 30
-  managed_policies      = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
-  role_policy           = {
+  terraform_version             = "1.9.8"
+  tflint_version                = "0.53.0"
+  checkov_version               = "3.2.281"
+  tf_state_dynamodb_arn         = data.aws_dynamodb_table.tf_state.arn # Optional: only needed if using DynamoDB for state locking
+  variables_file                = "environment/prod.tfvars"
+  tfbackend_file                = "environment/prod.s3.tfbackend"
+  emails                        = ["first.last@nexigroup.com", "jane.doe@nexigroup.com"]
+  failure_notifications         = "ENABLED"
+  success_notifications         = "ENABLED"
+  logs_retention_time           = 30
+  managed_policies              = ["AmazonRDSFullAccess", "AWSCodeCommitPowerUser"]
+  role_policy = {
     Statement = [
       {
-        Sid      = "EC2FullAccess"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "EC2FullAccess"
+        Effect = "Allow"
+        Action = [
           "ec2:*",
         ]
         Resource = "*"
       },
     ]
   }
-  tags                  = local.tags
-  directory             = ""
+  tags      = local.tags
+  directory = ""
 }
 data "aws_dynamodb_table" "tf_state" {
   name = "terraform-state-lock-sample-project"
 }
 
 ```
+## Requirements
+
+- Terraform `>= 1.9.0`
+- AWS provider `>= 5.72.0`
+- HTTP provider `>= 3.5.0`
+- Null provider `>= 3.2.4`
+
+Terraform 1.9 or newer is required because the module validates `custom_codebuild_image_uri` using an input variable validation rule that references other input variables.
+
 ## Variables
 | Name | Description | Type | Default | Notes |
 |------|-------------|------|---------|-------|
@@ -87,10 +95,10 @@ data "aws_dynamodb_table" "tf_state" {
 | vpc_id | VPC ID where CodeBuild projects will run (optional) | string | "" | If provided, CodeBuild instances will run inside the VPC in private networks |
 | subnet_ids | List of subnet IDs for CodeBuild projects (optional) | list(string) | [] | Use private subnets for security. Required if vpc_id is provided |
 | security_group_ids | List of security group IDs for CodeBuild projects (optional) | list(string) | [] | If not provided, a default security group with egress-only rules will be created |
-| tags | Map of Tag-Value -pairs to be added to all resources | map |  | `{ Tag: "Value", Cool: true }` |
-| managed_policies | List of AWS managed Policies to attach to pipeline | list(string) |  | example ['AmazonRDSFullAccess'] |
-| role_policy | A map describing IAM Role Policy, similar to [iam_role_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy). Module will format the value into json-string. | object({}) | {Statement = []} |  |
-| emails | List of email-addresses receiving notifications on updates | list(string) | [] | All recipient will receive confirmation email from AWS |
+| tags | Map of Tag-Value -pairs to be added to all resources | map(any) | {} | `{ Tag: "Value", Cool: true }` |
+| managed_policies | Set of AWS managed Policies to attach to pipeline | set(string) | [] | example `["AmazonRDSFullAccess"]` |
+| role_policy | IAM policy document to attach to the CodeBuild role | object | { Statement = [] } | Similar to [iam_role_policy.policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy); the module formats the value into JSON |
+| emails | Set of email-addresses receiving notifications on updates | set(string) | [] | All recipients will receive confirmation email from AWS |
 | failure_notifications | Whether or not you want notifications on failed builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | success_notifications | Whether or not you want notifications on succeeded builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | directory | directory for terraform hcl | string | "" | use "<folder>" if your code is in sub folder |
@@ -129,7 +137,7 @@ To enable VPC configuration, provide the VPC ID and subnet IDs:
 
 ```hcl
 module "tf_infra_pipeline" {
-  source = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v.2.3.0"
+  source = "git::https://github.com/Nets-Platform-Enablement/tf-module-aws-infra-pipeline?ref=v3.0.0"
   
   # ... other required variables ...
   
@@ -144,8 +152,8 @@ module "tf_infra_pipeline" {
 
 **Security Group Behavior:**
 - If you don't provide `security_group_ids`, the module will automatically create a default security group with:
-  - ✅ **Egress (outbound)**: Allow all traffic (required for downloading packages, accessing AWS APIs, etc.)
-  - ❌ **Ingress (inbound)**: No inbound rules (CodeBuild doesn't need incoming connections)
+  - **Egress (outbound)**: Allow all traffic (required for downloading packages, accessing AWS APIs, etc.)
+  - **Ingress (inbound)**: No inbound rules (CodeBuild doesn't need incoming connections)
 - If you provide `security_group_ids`, your security groups will be used instead
 
 **Important considerations:**
@@ -241,9 +249,11 @@ Rollback options:
 ## Releases
 
 ### v.3.0.0 Optimized pipeline design
+- Breaking change: Terraform `>= 1.9.0` is required for cross-variable input validation
 - New setting: `pipeline_design`, defaulting to `legacy` for in-place upgrades from v2
 - New optimized pipeline design with consolidated validate/lint/security/plan CodeBuild project
 - New optional custom CodeBuild image support for Terraform, tflint and Checkov
+- Custom CodeBuild images must be built outside this module and provided with `custom_codebuild_image_uri`
 - Optimized mode keeps approval tied to the saved Terraform plan artifact
 - Legacy mode preserves the existing v2 pipeline shape and package download behavior
 
