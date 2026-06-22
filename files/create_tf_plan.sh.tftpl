@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Creates the saved Terraform plan artifact used by the later apply stage.
+
+if [ -z "$${VAR_FILE:-}" ]; then
+  echo "Terraform plan failed: VAR_FILE is empty (expected path to a .tfvars file)." > plan.txt
+  printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: VAR_FILE is empty" "No Terraform plan was generated." > validate-plan-summary.txt
+  : > thePlan.tfp
+  exit 1
+fi
+
+if ! terraform plan --var-file "$VAR_FILE" -no-color -out thePlan.tfp; then
+  echo "Terraform plan failed. No valid Terraform plan was generated." > plan.txt
+  printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: terraform plan failed" "No valid Terraform plan was generated." > validate-plan-summary.txt
+  : > thePlan.tfp
+  exit 1
+fi
