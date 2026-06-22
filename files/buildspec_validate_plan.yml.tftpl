@@ -34,12 +34,37 @@ phases:
     commands:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
-      - printf '%s' "$VALIDATE_PLAN_CHECKS_SCRIPT" | base64 -d > /tmp/validate-plan-checks.sh
+      - |
+        fail_script_setup() {
+          reason="$1"
+          echo "Validate-plan script setup failed: $reason" > plan.txt
+          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: $reason" "No Terraform plan was generated." > validate-plan-summary.txt
+          : > thePlan.tfp
+          exit 1
+        }
+        decode_script() {
+          script_name="$1"
+          script_value="$2"
+          script_path="$3"
+          if [ -z "$script_value" ]; then
+            fail_script_setup "$script_name is empty"
+          fi
+          if ! printf '%s' "$script_value" | base64 -d > "$script_path"; then
+            fail_script_setup "$script_name could not be decoded"
+          fi
+          if [ ! -s "$script_path" ]; then
+            fail_script_setup "$script_name decoded to an empty file"
+          fi
+        }
+        if ! command -v base64 >/dev/null 2>&1; then
+          fail_script_setup "base64 command is not available in the CodeBuild image"
+        fi
+        decode_script "VALIDATE_PLAN_CHECKS_SCRIPT" "$VALIDATE_PLAN_CHECKS_SCRIPT" /tmp/validate-plan-checks.sh
+        decode_script "CREATE_TF_PLAN_SCRIPT" "$CREATE_TF_PLAN_SCRIPT" /tmp/create-tf-plan.sh
+        decode_script "RENDER_PLAN_SUMMARY_SCRIPT" "$RENDER_PLAN_SUMMARY_SCRIPT" /tmp/render-plan-summary.sh
       - bash /tmp/validate-plan-checks.sh
       - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
-      - printf '%s' "$CREATE_TF_PLAN_SCRIPT" | base64 -d > /tmp/create-tf-plan.sh
       - bash /tmp/create-tf-plan.sh
-      - printf '%s' "$RENDER_PLAN_SUMMARY_SCRIPT" | base64 -d > /tmp/render-plan-summary.sh
       - bash /tmp/render-plan-summary.sh
       - echo "Terraform plan saved to thePlan.tfp and plan.txt"
 
