@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Runs the validate, tflint, and optional Checkov gates before creating a Terraform plan.
+
+fail_build() {
+  reason="$1"
+  echo ""
+  echo "============================================================"
+  echo "VALIDATE-PLAN FAILED: $reason"
+  echo "No Terraform plan was generated. Fix the failing check above and rerun the pipeline."
+  echo "============================================================"
+  printf '%s\n' "VALIDATE-PLAN FAILED: $reason" "No Terraform plan was generated." "Fix the failing check above and rerun the pipeline." > plan.txt
+  printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: $reason" "No Terraform plan was generated." > validate-plan-summary.txt
+  : > thePlan.tfp
+  exit 1
+}
+
+echo "============================================================"
+echo "Running terraform validate"
+echo "============================================================"
+terraform validate -no-color || fail_build "terraform validate failed"
+
+echo "============================================================"
+echo "Running tflint"
+echo "============================================================"
+tflint --init || fail_build "tflint plugin initialization failed"
+tflint || fail_build "tflint found issues"
+%{ if ENABLE_CHECKOV }
+
+echo "============================================================"
+echo "Running checkov"
+echo "============================================================"
+export CHECKOV_ENABLE_MODULES_FOREACH_HANDLING=false
+checkov --directory ./ %{ if SOFTFAIL }--soft-fail%{ endif } || fail_build "checkov found policy violations"
+%{ endif }

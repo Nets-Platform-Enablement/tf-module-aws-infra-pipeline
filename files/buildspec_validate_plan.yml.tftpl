@@ -1,5 +1,11 @@
 version: 0.2
 
+env:
+  variables:
+    VALIDATE_PLAN_CHECKS_SCRIPT: "${VALIDATE_PLAN_CHECKS_SCRIPT}"
+    CREATE_TF_PLAN_SCRIPT: "${CREATE_TF_PLAN_SCRIPT}"
+    RENDER_PLAN_SUMMARY_SCRIPT: "${RENDER_PLAN_SUMMARY_SCRIPT}"
+
 phases:
 
   install:
@@ -29,92 +35,37 @@ phases:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
       - |
-        fail_build() {
+        fail_script_setup() {
           reason="$1"
-          echo ""
-          echo "============================================================"
-          echo "VALIDATE-PLAN FAILED: $reason"
-          echo "No Terraform plan was generated. Fix the failing check above and rerun the pipeline."
-          echo "============================================================"
-          printf '%s\n' "VALIDATE-PLAN FAILED: $reason" "No Terraform plan was generated." "Fix the failing check above and rerun the pipeline." > plan.txt
+          echo "Validate-plan script setup failed: $reason" > plan.txt
           printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: $reason" "No Terraform plan was generated." > validate-plan-summary.txt
           : > thePlan.tfp
           exit 1
         }
-
-        echo "============================================================"
-        echo "Running terraform validate"
-        echo "============================================================"
-        terraform validate -no-color || fail_build "terraform validate failed"
-
-        echo "============================================================"
-        echo "Running tflint"
-        echo "============================================================"
-        tflint --init || fail_build "tflint plugin initialization failed"
-        tflint || fail_build "tflint found issues"
-%{ if ENABLE_CHECKOV }
-        echo "============================================================"
-        echo "Running checkov"
-        echo "============================================================"
-        export CHECKOV_ENABLE_MODULES_FOREACH_HANDLING=false
-        checkov --directory ./ %{ if SOFTFAIL }--soft-fail%{ endif } || fail_build "checkov found policy violations"
-%{ endif }
+        decode_script() {
+          script_name="$1"
+          script_value="$2"
+          script_path="$3"
+          if [ -z "$script_value" ]; then
+            fail_script_setup "$script_name is empty"
+          fi
+          if ! printf '%s' "$script_value" | base64 -d > "$script_path"; then
+            fail_script_setup "$script_name could not be decoded"
+          fi
+          if [ ! -s "$script_path" ]; then
+            fail_script_setup "$script_name decoded to an empty file"
+          fi
+        }
+        if ! command -v base64 >/dev/null 2>&1; then
+          fail_script_setup "base64 command is not available in the CodeBuild image"
+        fi
+        decode_script "VALIDATE_PLAN_CHECKS_SCRIPT" "$VALIDATE_PLAN_CHECKS_SCRIPT" /tmp/validate-plan-checks.sh
+        decode_script "CREATE_TF_PLAN_SCRIPT" "$CREATE_TF_PLAN_SCRIPT" /tmp/create-tf-plan.sh
+        decode_script "RENDER_PLAN_SUMMARY_SCRIPT" "$RENDER_PLAN_SUMMARY_SCRIPT" /tmp/render-plan-summary.sh
+      - bash /tmp/validate-plan-checks.sh
       - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
-      - |
-        if [ -z "$${VAR_FILE:-}" ]; then
-          echo "Terraform plan failed: VAR_FILE is empty (expected path to a .tfvars file)." > plan.txt
-          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: VAR_FILE is empty" "No Terraform plan was generated." > validate-plan-summary.txt
-          : > thePlan.tfp
-          exit 1
-        fi
-        if ! terraform plan --var-file "$VAR_FILE" -no-color -out thePlan.tfp; then
-          echo "Terraform plan failed. No valid Terraform plan was generated." > plan.txt
-          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: terraform plan failed" "No valid Terraform plan was generated." > validate-plan-summary.txt
-          : > thePlan.tfp
-          exit 1
-        fi
-      - |
-        if ! terraform show -no-color thePlan.tfp > plan.txt; then
-          echo "Terraform plan was created, but rendering plan.txt failed." > plan.txt
-          printf '%s\n' "Validate-plan summary" "Status: failed" "Reason: terraform show failed" "Terraform plan was created, but plan.txt could not be rendered." > validate-plan-summary.txt
-          exit 1
-        fi
-        PLAN_RESULT=$(grep -E '^(No changes\.|Plan: )' plan.txt | tail -n 1 || true)
-        if [ -z "$PLAN_RESULT" ]; then
-          PLAN_RESULT="Plan file generated; no concise Terraform summary line found."
-        fi
-        awk '
-          /^  # / && ($0 ~ / will be / || $0 ~ / must be / || $0 ~ / has moved/) {
-            count++
-            if (count <= 50) {
-              change=$0
-              sub(/^  # /, "", change)
-              print "- " change
-            }
-          }
-          END {
-            if (count == 0) {
-              print "- none"
-            } else if (count > 50) {
-              print "- ... " count " total planned resource changes; showing first 50. See plan.txt for full details."
-            }
-          }
-        ' plan.txt > planned-changes.txt
-        {
-          echo "Validate-plan summary"
-          echo "Status: succeeded"
-          echo "terraform validate: passed"
-          echo "tflint: passed"
-%{ if ENABLE_CHECKOV }
-          echo "checkov: completed%{ if SOFTFAIL } (soft-fail enabled)%{ endif }"
-%{ else }
-          echo "checkov: disabled"
-%{ endif }
-          echo "$PLAN_RESULT"
-          echo "Planned changes:"
-          cat planned-changes.txt
-          echo "Artifacts: thePlan.tfp, plan.txt, validate-plan-summary.txt"
-        } > validate-plan-summary.txt
+      - bash /tmp/create-tf-plan.sh
+      - bash /tmp/render-plan-summary.sh
       - echo "Terraform plan saved to thePlan.tfp and plan.txt"
 
   post_build:

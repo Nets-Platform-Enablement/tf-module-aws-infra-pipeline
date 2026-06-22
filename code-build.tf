@@ -244,6 +244,24 @@ resource "aws_codebuild_project" "validate_plan" {
         LATEST_CHECKOV  = var.checkov_version == "latest",
         SOFTFAIL        = !var.require_checkov_pass,
         CUSTOM_IMAGE    = local.use_custom_codebuild_image
+        VALIDATE_PLAN_CHECKS_SCRIPT = base64encode(templatefile(
+          "${path.module}/files/validate_plan_checks.sh.tftpl",
+          {
+            ENABLE_CHECKOV = var.enable_checkov,
+            SOFTFAIL       = !var.require_checkov_pass
+          }
+        ))
+        CREATE_TF_PLAN_SCRIPT = base64encode(templatefile(
+          "${path.module}/files/create_tf_plan.sh.tftpl",
+          {}
+        ))
+        RENDER_PLAN_SUMMARY_SCRIPT = base64encode(templatefile(
+          "${path.module}/files/render_plan_summary.sh.tftpl",
+          {
+            ENABLE_CHECKOV = var.enable_checkov,
+            SOFTFAIL       = !var.require_checkov_pass
+          }
+        ))
       }
     )
   }
