@@ -52,7 +52,7 @@ variable "require_manual_approval" {
 variable "pipeline_design" {
   type        = string
   nullable    = false
-  description = "Pipeline design to use. 'legacy' preserves the v2 pipeline shape, 'optimized' enables the v3 optimized pipeline design."
+  description = "Pipeline design to use. 'legacy' uses separate validation projects, 'optimized' consolidates validation and planning. Both designs use separate plan and apply steps."
   default     = "legacy"
   sensitive   = false
 
@@ -167,7 +167,7 @@ variable "directory" {
 
 variable "extra_build_artifacts" {
   type        = set(string)
-  description = "Include these extra file from Plan step to Apply step"
+  description = "Extra files or patterns to carry from plan to apply, relative to directory, with or without manual approval"
   default     = ([""])
   sensitive   = false
 }
