@@ -63,7 +63,7 @@ phases:
         decode_script "CREATE_TF_PLAN_SCRIPT" "$CREATE_TF_PLAN_SCRIPT" /tmp/create-tf-plan.sh
         decode_script "RENDER_PLAN_SUMMARY_SCRIPT" "$RENDER_PLAN_SUMMARY_SCRIPT" /tmp/render-plan-summary.sh
       - bash /tmp/validate-plan-checks.sh
-      - echo "Preview the changes that Terraform plans to make to your infrastructure on `date` that will be applied after approval"
+      - echo "Preview the changes that Terraform plans to make to your infrastructure on `date`"
       - bash /tmp/create-tf-plan.sh
       - bash /tmp/render-plan-summary.sh
       - echo "Terraform plan saved to thePlan.tfp and plan.txt"

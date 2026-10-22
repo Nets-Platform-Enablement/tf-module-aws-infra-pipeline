@@ -83,7 +83,7 @@ Terraform 1.9 or newer is required because the module validates `custom_codebuil
 | tf_state_dynamodb_arn | ARN of the DynamoDB maintaining Terraform state (optional) | string | "" | Leave empty if not using DynamoDB for state locking |
 | aws_region | AWS region to deploy pipeline to | string | `eu-central-1` |  |
 | require_manual_approval | Whether or not a manual approval of changes is required before applying changes | bool | true |  |
-| pipeline_design | Pipeline design to use | string | `legacy` | `legacy` preserves the v2 pipeline shape for in-place upgrades. `optimized` enables the v3 optimized pipeline design |
+| pipeline_design | Pipeline design to use | string | `legacy` | `legacy` uses separate validation projects. `optimized` consolidates validation and planning. Both use separate plan and apply steps |
 | variables_file | File to provide terraform the variables with | string | "" | If not given, will automatically try to use `environments/{environment}.tfvars` |
 | tfbackend_file | File to provide terraform the backend config with | string | "" | Naming convension: {environment}.s3.tfbackend, see [HashiCorp documentation](https://developer.hashicorp.com/terraform/language/settings/backends/configuration#using-a-backend-block) |
 | terraform_version | The version of Terraform to use | string | "latest" | Either semantic version number or "latest" |
@@ -103,10 +103,23 @@ Terraform 1.9 or newer is required because the module validates `custom_codebuil
 | failure_notifications | Whether or not you want notifications on failed builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | success_notifications | Whether or not you want notifications on succeeded builds | string | "DISABLED" | [ENABLED / DISABLED / ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS] |
 | directory | directory for terraform hcl | string | "" | use "<folder>" if your code is in sub folder |
-| extra_build_artifacts | filenames to be included for codepipeline apply step | set(string) | ([""]) |
+| extra_build_artifacts | Extra files or patterns to carry from plan to apply | set(string) | ([""]) | Relative to `directory`; required for generated files in both approval modes |
 | enable_checkov | If checkov should be ran | boolean | false | Without `require_checkov_pass = true`, this will only log the findings | 
 | require_checkov_pass | Should failed checkov check prevent the changes from being applied | boolean | false | Requires `enable_checkov = true` to be effective | 
 | logs_retention_time | Time to retain the logs in days, allowed values: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365 and 0 | integer | 30 | 0 = never expire | 
+
+## Plan and Apply Artifacts
+
+Terraform plan and apply run in separate CodeBuild jobs with both `require_manual_approval = false` and `require_manual_approval = true`. The apply job consumes the saved `TerraformPlan` artifact and applies `thePlan.tfp`. Manual approval adds an approval action between plan and apply.
+
+Files generated during planning that are needed during apply, such as Lambda deployment ZIP files, must be included in `extra_build_artifacts`. Paths and patterns are relative to the Terraform working directory configured by `directory`:
+
+```hcl
+directory             = "infra"
+extra_build_artifacts = ["lambda.zip", "build/**/*"]
+```
+
+Use the same artifact configuration in test and production, regardless of the approval setting. Existing legacy pipelines with automatic approval must list any required generated files when upgrading: these files previously remained in the same build workspace because plan and apply ran in one job.
 
 ## State Locking Configuration
 
@@ -169,7 +182,7 @@ If you don't provide VPC configuration, CodeBuild instances will run in AWS-mana
 
 ## v3 Pipeline Design and In-Place Upgrade
 
-Version 3 introduces an optimized pipeline design, but keeps the legacy v2 pipeline shape as the default. This lets existing users update the module version in place first and opt into the new design later.
+Version 3 introduces an optimized pipeline design, but keeps the legacy design with separate validation projects as the default. This lets existing users update the module version in place first and opt into the new design later. Both designs now separate plan and apply, including when manual approval is disabled.
 
 Recommended upgrade path:
 
@@ -177,10 +190,10 @@ Recommended upgrade path:
 2. Run `terraform plan` and confirm the existing pipeline remains on the legacy design.
 3. In a separate change, set `pipeline_design = "optimized"` after reviewing the planned resource changes.
 
-Legacy mode preserves the current behavior:
+Legacy mode uses:
 - Separate CodeBuild projects for `tflint`, optional `checkov`, `terraform plan`, and `terraform apply`
 - Existing S3 package download flow for Terraform and tflint
-- Existing manual approval and auto-approve behavior
+- Separate plan and apply jobs with an optional manual approval action
 
 Optimized mode changes the pipeline shape:
 - Runs `terraform init` once before approval
@@ -247,6 +260,10 @@ Rollback options:
 | codebuild_runtime_image | CodeBuild runtime image selected by the module |
 
 ## Releases
+
+### Unreleased
+- Legacy pipelines with automatic approval now run plan and apply in separate CodeBuild jobs and apply the saved plan artifact
+- Generated files needed during apply must be listed in `extra_build_artifacts` in both approval modes
 
 ### v.3.0.0 Optimized pipeline design
 - Breaking change: Terraform `>= 1.9.0` is required for cross-variable input validation
