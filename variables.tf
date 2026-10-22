@@ -188,6 +188,17 @@ variable "codebuild_image_id" {
   description = "ID of the CodeBuild instance image"
 }
 
+variable "codebuild_timeout" {
+  type        = number
+  default     = 60
+  description = "CodeBuild project build timeout in minutes"
+
+  validation {
+    condition     = var.codebuild_timeout >= 5 && var.codebuild_timeout <= 2160
+    error_message = "The codebuild_timeout value must be between 5 and 2160 minutes."
+  }
+}
+
 variable "enable_custom_codebuild_image" {
   type        = bool
   nullable    = false

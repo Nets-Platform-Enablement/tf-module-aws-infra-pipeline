@@ -90,6 +90,7 @@ Terraform 1.9 or newer is required because the module validates `custom_codebuil
 | tflint_version | The version of tflint to use | string | "latest" | Either semantic version number or "latest" |
 | checkov_version | The version of checkov to use | string | "latest" | Either semantic version number or "latest" |
 | codebuild_image_id | ID of the CodeBuild instance image | string | "aws/codebuild/standard:7.0" | [CodeBuild documentation](https://docs.aws.amazon.com/codebuild/latest/userguide/ec2-compute-images.html) |
+| codebuild_timeout | CodeBuild project build timeout in minutes | number | 60 | Must be between 5 and 2160 minutes (36 hours) |
 | enable_custom_codebuild_image | Whether to use a custom CodeBuild image in optimized pipeline mode | bool | false | Requires `custom_codebuild_image_uri` to point to an externally managed image |
 | custom_codebuild_image_uri | Existing custom CodeBuild image URI to use in optimized pipeline mode | string | "" | Required when `enable_custom_codebuild_image = true` |
 | vpc_id | VPC ID where CodeBuild projects will run (optional) | string | "" | If provided, CodeBuild instances will run inside the VPC in private networks |
