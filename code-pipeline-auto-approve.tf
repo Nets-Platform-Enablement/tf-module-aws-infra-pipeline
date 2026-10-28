@@ -61,6 +61,22 @@ resource "aws_codepipeline" "terraform_without_approval" {
     }
   }
 
+  stage {
+    name = "Terraform-Plan"
+    action {
+      run_order        = 1
+      name             = "terraform-plan"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      input_artifacts  = ["CodeWorkspace"]
+      output_artifacts = ["TerraformPlan"]
+      version          = "1"
+      configuration = {
+        ProjectName = aws_codebuild_project.tf_plan.name
+      }
+    }
+  }
 
   stage {
     name = "Deploy"
@@ -70,11 +86,12 @@ resource "aws_codepipeline" "terraform_without_approval" {
       category         = "Build"
       owner            = "AWS"
       provider         = "CodeBuild"
-      input_artifacts  = ["CodeWorkspace"]
+      input_artifacts  = ["CodeWorkspace", "TerraformPlan"]
       output_artifacts = []
       version          = "1"
       configuration = {
-        ProjectName = aws_codebuild_project.tf_apply.name
+        ProjectName   = aws_codebuild_project.tf_apply.name
+        PrimarySource = "CodeWorkspace"
       }
     }
   }

@@ -313,7 +313,7 @@ resource "aws_codebuild_project" "tf_apply" {
   source {
     type = "CODEPIPELINE"
     buildspec = templatefile(
-      "${path.module}/files/${var.require_manual_approval || local.use_optimized_pipeline ? "buildspec_tf_apply.yml.tftpl" : "buildspec_tf_apply_auto_approve.yml.tftpl"}",
+      "${path.module}/files/buildspec_tf_apply.yml.tftpl",
       {
         TF_SOURCE    = local.terraform_package,
         DIRECTORY    = var.directory,
