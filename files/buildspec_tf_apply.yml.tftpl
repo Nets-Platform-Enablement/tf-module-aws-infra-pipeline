@@ -16,7 +16,7 @@ phases:
     commands:
       - cd "$CODEBUILD_SRC_DIR/${DIRECTORY}"
       - terraform init %{ if BACKENDFILE != "" } -backend-config ${BACKENDFILE} %{ endif } -upgrade -no-color
-      - mv $CODEBUILD_SRC_DIR_TerraformPlan/* .
+      - cp -av $CODEBUILD_SRC_DIR_TerraformPlan/* .
       - terraform apply thePlan.tfp
 
   post_build:
